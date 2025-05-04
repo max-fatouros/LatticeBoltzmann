@@ -1,0 +1,23 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-json
+      - id: check-toml
+      - id: check-yaml
+      - id: double-quote-string-fixer
+      - id: end-of-file-fixer
+      - id: file-contents-sorter
+        # files is a python regex
+        files: \.gitignore|mplstyle$
+      - id: mixed-line-ending
+      - id: name-tests-test
+      - id: trailing-whitespace
+      - id: detect-private-key
+
+
+  - repo: "https://github.com/domluna/JuliaFormatter.jl"
+    rev: "v2.1.1"
+    hooks:
+    - id: "julia-formatter"

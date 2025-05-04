@@ -1,0 +1,7 @@
+always_for_in = true
+remove_extra_newlines = true
+always_use_return = true
+whitespace_in_kwargs = false
+join_lines_based_on_source = true
+separate_kwargs_with_semicolon = true
+for_in_replacement = "∈"
