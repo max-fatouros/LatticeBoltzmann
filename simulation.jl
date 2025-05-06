@@ -4,6 +4,7 @@ using ProgressMeter
 
 struct Simulation
     velocity_distribution::Array{Float64,3}
+    velocity_distribution_buffer::Array{Float64,3}
     equilibrium_distribution::Array{Float64,3}
     mass_densities::Array{Float64,2}
     momentum_densities::Array{Float64,3}
@@ -110,6 +111,7 @@ function Simulation(
 
     return Simulation(
         velocity_distribution,
+        similar(velocity_distribution),
         equilibrium_distribution,
         mass_densities,
         momentum_densities,
@@ -124,14 +126,16 @@ function Simulation(
 end
 
 function compute_momentum_densities!(simulation::Simulation)
-    for i ∈ axes(simulation.velocity_distribution, 2)
+    @inbounds for i ∈ axes(simulation.velocity_distribution, 2)
         for j ∈ axes(simulation.velocity_distribution, 1)
+            #! format: off
             simulation.momentum_densities[j, i, :] = (
                 sum(
-                simulation.directions
-                .* simulation.velocity_distribution[j, i, :],
+                    simulation.directions
+                    .* simulation.velocity_distribution[j, i, :],
+                )
             )
-            )
+            #! format: on
         end
     end
     return
@@ -145,79 +149,34 @@ function compute_mass_densities!(simulation::Simulation)
     return
 end
 
-function vector_matrix_dot_product(
-    vector::SVector{2,Int8},
-    matrix::Array{Float64,3},
-)
-    result = similar(matrix[:, :, 1])
-    result .= 0
-    for i ∈ 1:length(vector)
-        result += matrix[:, :, i] * vector[i]
-    end
-    return result
-end
-
 function compute_equilibrium_distribution!(simulation::Simulation)
     u = simulation.momentum_densities ./ simulation.mass_densities
-    for i ∈ axes(simulation.equilibrium_distribution, 3)
-        uv = vector_matrix_dot_product(
-            simulation.directions[i],
-            u,
-        )
 
-        #! format: off
-        simulation.equilibrium_distribution[:,:,i] = (
-            simulation.weights[i]
-            * simulation.mass_densities
-            .* (
-                1
-                .+ (
-                    (3/simulation.lattice_speed_squared)
-                    * uv
-                )
-                + (
-                    (9/(2 * simulation.lattice_speed_squared^2))
-                    * uv.^2
-                )
-                - (
-                    (3/(2 * simulation.lattice_speed_squared))
-                    * sum(u[:,:,i].^2 for i in axes(u, 3))
-                )
-            )
-        )
-        #! format: on
-    end
-    return
-end
+    uu = sum(u .^ 2; dims=3)[:, :, 1]
 
-function opt_compute_equilibrium_distribution!(simulation::Simulation)
-    u = simulation.momentum_densities ./ simulation.mass_densities
-    for i ∈ axes(simulation.equilibrium_distribution, 3)
-        uv = vector_matrix_dot_product(
-            simulation.directions[i],
-            u,
+    c1 = (3 / simulation.lattice_speed_squared)
+    c2 = (9 / (2 * simulation.lattice_speed_squared^2))
+    c3 = (3 / (2 * simulation.lattice_speed_squared))
+
+    @inbounds for i ∈ axes(simulation.equilibrium_distribution, 3)
+        uv = @. (
+            simulation.directions[i][1] * u[:, :, 1]
+            +
+            simulation.directions[i][2] * u[:, :, 2]
         )
 
         #! format: off
         # Tried
         # - @views
-        simulation.equilibrium_distribution[:,:,i] = @views (
+
+        @. simulation.equilibrium_distribution[:,:,i] = (
             simulation.weights[i]
             * simulation.mass_densities
-            .* (
+            * (
                 1
-                .+ (
-                    (3/simulation.lattice_speed_squared)
-                    * uv
-                )
-                + (
-                    (9/(2 * simulation.lattice_speed_squared^2))
-                    * uv.^2
-                )
-                - (
-                    (3/(2 * simulation.lattice_speed_squared))
-                    * sum(u[:,:,i].^2 for i in axes(u, 3))
-                )
+                + (c1 * uv)
+                + (c2 * uv.^2)
+                - (c3 * uu)
             )
         )
         #! format: on
@@ -227,7 +186,7 @@ end
 
 function collide!(simulation::Simulation)
     #! format: off
-    simulation.velocity_distribution .= (
+    @. simulation.velocity_distribution = (
         simulation.velocity_distribution
         + (simulation.delta_t / simulation.characteristic_time)
         * (simulation.equilibrium_distribution - simulation.velocity_distribution)
@@ -238,11 +197,19 @@ function collide!(simulation::Simulation)
 end
 
 function stream!(simulation::Simulation)
-    for i ∈ axes(simulation.velocity_distribution, 3)
-        simulation.velocity_distribution[:, :, i] = circshift(
-            simulation.velocity_distribution[:, :, i],
-            simulation.directions[i],
-        )
+    simulation.velocity_distribution_buffer .= simulation.velocity_distribution
+
+    @inbounds for i ∈ axes(simulation.velocity_distribution, 3)
+        dx, dy = simulation.directions[i]
+        nx, ny = size(simulation.velocity_distribution)[1:2]
+
+        for j ∈ 1:ny, k ∈ 1:nx
+            dest_x = mod1(k + dx, nx)
+            dest_y = mod1(j + dy, ny)
+            simulation.velocity_distribution[dest_x, dest_y, i] = (
+                simulation.velocity_distribution_buffer[k, j, i]
+            )
+        end
     end
     return
 end
