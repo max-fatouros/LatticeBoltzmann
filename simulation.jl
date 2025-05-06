@@ -225,6 +225,7 @@ end
 function run!(
     simulation::Simulation;
     prog=nothing,
+    save_every=100,
 )
     prog = something(
         prog,
@@ -235,7 +236,7 @@ function run!(
     for (i, _) ∈ enumerate(1:simulation.time_steps)
         next!(prog)
         update!(simulation)
-        if i % 100 == 0
+        if i % save_every == 0
             push!(simulations, deepcopy(simulation))
         end
     end
