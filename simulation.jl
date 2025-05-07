@@ -39,9 +39,12 @@ function Simulation{dimensions,directions}() where {dimensions,directions}
 end
 
 const Simulation2D{directions} = Simulation{2,3,directions}
-const Simulation3D{directions} = Simulation{3,4,directions}
+const Simulation2DQ9 = Simulation2D{9}
 
-function Simulation{2,9}(
+const Simulation3D{directions} = Simulation{3,4,directions}
+const Simulation3DQ15 = Simulation3D{15}
+
+function Simulation2DQ9(
     time_steps;
     divisions=(400, 100),
 )
@@ -134,7 +137,7 @@ function Simulation{2,9}(
     )
 end
 
-function Simulation{3,15}(
+function Simulation3DQ15(
     time_steps;
     divisions=(200, 100, 100),
 )
