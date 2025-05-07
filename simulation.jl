@@ -2,6 +2,10 @@ using StaticArrays
 using LinearAlgebra
 using ProgressMeter
 
+#TODO: import only on macos?
+using AppleAccelerate
+AppleAccelerate.@replaceBase(^, /)
+
 struct Simulation
     velocity_distribution::Array{Float64,3}
     velocity_distribution_buffer::Array{Float64,3}
