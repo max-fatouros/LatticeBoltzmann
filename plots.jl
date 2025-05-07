@@ -1,5 +1,8 @@
 using CairoMakie
 using GLMakie
+using ProgressMeter
+
+GLMakie.activate!(; float=true)
 
 function plot_speeds(
     simulation::Simulation;
