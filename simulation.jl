@@ -277,6 +277,7 @@ function get_velocities_in_objects(simulation::Simulation3DQ15)
                 9,
                 8
             ]
+        ]
     )
     #!format: on
     return velocities_in_objects
