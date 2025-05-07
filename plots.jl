@@ -80,8 +80,9 @@ function animate_speeds_with_slider(simulations::Vector{Simulation})
     return
 end
 
-    simulation,
 function animate_speeds_live!(
+    simulation;
+    show_every=100,
 )
     fig = Figure()
     sim = Observable(simulation)
@@ -98,7 +99,9 @@ function animate_speeds_live!(
     for i ∈ 1:simulation.time_steps
         multithreaded_update!(sim[])
         resize_to_layout!(fig)
-        notify(sim)
+        if (i % show_every) == 0
+            notify(sim)
+        end
         sleep(1e-3)
     end
     return
