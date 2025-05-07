@@ -373,7 +373,6 @@ end
 @views function compute_equilibrium_distribution!(simulation::Simulation2D)
     u = simulation.momentum_densities ./ simulation.mass_densities
 
-    # uu = sum(u .^ 2; dims=3)[:, :, 1]
     uu = @. u[:, :, 1]^2 + u[:, :, 2]^2
 
     c1 = (3 / simulation.lattice_speed_squared)
@@ -577,7 +576,7 @@ end
         simulation.momentum_densities[:, chunk_start:chunk_end, :] ./
         simulation.mass_densities[:, chunk_start:chunk_end]
 
-    uu = sum(u .^ 2; dims=3)[:, :, 1]
+    uu = @. u[:, :, 1]^2 + u[:, :, 2]^2
 
     c1 = (3 / simulation.lattice_speed_squared)
     c2 = (9 / (2 * simulation.lattice_speed_squared^2))
