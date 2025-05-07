@@ -30,7 +30,7 @@ function plot_speeds(
     return fig
 end
 
-function animate_speeds(
+function animate_speeds!(
     simulation::Simulation,
     filename="animation.mp4",
 )
@@ -80,8 +80,8 @@ function animate_speeds_with_slider(simulations::Vector{Simulation})
     return
 end
 
-function animate_speeds_live(
     simulation,
+function animate_speeds_live!(
 )
     fig = Figure()
     sim = Observable(simulation)
