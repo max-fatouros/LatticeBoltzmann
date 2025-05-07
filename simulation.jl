@@ -199,14 +199,14 @@ function Simulation3DQ15(
         1 / 9,
         1 / 9,
         1 / 9,
-        1 / 36,
-        1 / 36,
-        1 / 36,
-        1 / 36,
-        1 / 36,
-        1 / 36,
-        1 / 36,
-        1 / 36,
+        1 / 72,
+        1 / 72,
+        1 / 72,
+        1 / 72,
+        1 / 72,
+        1 / 72,
+        1 / 72,
+        1 / 72,
     ]
 
     # delta_t = 5e-3
@@ -302,18 +302,22 @@ function set_zou_he_boundaries!(simulation::Simulation3DQ15)
     simulation.velocity_distribution[
         end,
         :,
+        :,
         [3, 12, 13, 14, 15],
     ] .= simulation.velocity_distribution[
         end-1,
+        :,
         :,
         [3, 12, 13, 14, 15],
     ]
     simulation.velocity_distribution[
         1,
         :,
+        :,
         [2, 8, 9, 10, 11],
     ] = simulation.velocity_distribution[
         2,
+        :,
         :,
         [2, 8, 9, 10, 11],
     ]
