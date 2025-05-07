@@ -116,7 +116,7 @@ function Simulation(
     )
 end
 
-function compute_momentum_densities!(simulation::Simulation)
+@views function compute_momentum_densities!(simulation::Simulation)
     @inbounds for i ∈ axes(simulation.velocity_distribution, 2)
         for j ∈ axes(simulation.velocity_distribution, 1)
             #! format: off
@@ -140,10 +140,11 @@ function compute_mass_densities!(simulation::Simulation)
     return
 end
 
-function compute_equilibrium_distribution!(simulation::Simulation)
+@views function compute_equilibrium_distribution!(simulation::Simulation)
     u = simulation.momentum_densities ./ simulation.mass_densities
 
-    uu = sum(u .^ 2; dims=3)[:, :, 1]
+    # uu = sum(u .^ 2; dims=3)[:, :, 1]
+    uu = @. u[:, :, 1]^2 + u[:, :, 2]^2
 
     c1 = (3 / simulation.lattice_speed_squared)
     c2 = (9 / (2 * simulation.lattice_speed_squared^2))
