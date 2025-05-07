@@ -244,8 +244,6 @@ function Simulation3DQ15(
     )
 end
 
-
-
 function get_velocities_in_objects(simulation::Simulation2DQ9)
     # https://github.com/pmocz/latticeboltzmann-python/blob/main/latticeboltzmann.py
     velocities_in_objects = simulation.velocity_distribution[simulation.object_mask, :]
@@ -283,8 +281,6 @@ function get_velocities_in_objects(simulation::Simulation3DQ15)
     return velocities_in_objects
 end
 
-
-
 function set_zou_he_boundaries!(simulation::Simulation2DQ9)
     # https://www.youtube.com/watch?v=JFWqCQHg-Hs&t=1032s
     # Zou He boundary condition
@@ -294,11 +290,13 @@ function set_zou_he_boundaries!(simulation::Simulation2DQ9)
     simulation.velocity_distribution[1, :, [2, 6, 9]] = (
         simulation.velocity_distribution[2, :, [2, 6, 9]]
     )
+    return
 end
 
 function set_zou_he_boundaries!(simulation::Simulation3DQ15)
     # https://www.youtube.com/watch?v=JFWqCQHg-Hs&t=1032s
     # Zou He boundary condition
+    #!format: off
     simulation.velocity_distribution[
         end,
         :,
@@ -321,9 +319,9 @@ function set_zou_he_boundaries!(simulation::Simulation3DQ15)
         :,
         [2, 8, 9, 10, 11],
     ]
+    #!format: on
+    return
 end
-
-
 
 @views function compute_momentum_densities!(simulation::Simulation2D)
     @inbounds for i ∈ axes(simulation.velocity_distribution, 2)
@@ -518,13 +516,11 @@ function update!(simulation::Simulation2D)
 end
 
 function update!(simulation::Simulation3D)
-
     set_zou_he_boundaries!(simulation)
 
     simulation.velocity_distribution[2, :, :, 2] .= 2
 
     velocities_in_objects = get_velocities_in_objects(simulation)
-
 
     compute_mass_densities!(simulation)
     compute_momentum_densities!(simulation)
@@ -568,7 +564,7 @@ function compute_momentum_densities!(
 )
     @inbounds for i ∈ chunk_start:chunk_end
         for j ∈ axes(simulation.velocity_distribution, 2)
-            for k in axes(simulation.velocity_distribution, 1)
+            for k ∈ axes(simulation.velocity_distribution, 1)
                 #! format: off
                 @views simulation.momentum_densities[k, j, i, :] = (
                     sum(
@@ -747,7 +743,6 @@ function multithreaded_update!(simulation::Simulation2D)
 
     return
 end
-
 
 function multithreaded_update!(simulation::Simulation3D)
     set_zou_he_boundaries!(simulation)
