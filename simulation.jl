@@ -244,6 +244,82 @@ function Simulation3DQ15(
     )
 end
 
+
+
+function get_velocities_in_objects(simulation::Simulation2DQ9)
+    # https://github.com/pmocz/latticeboltzmann-python/blob/main/latticeboltzmann.py
+    velocities_in_objects = simulation.velocity_distribution[simulation.object_mask, :]
+    velocities_in_objects = velocities_in_objects[:, [1, 4, 5, 2, 3, 8, 9, 6, 7]]
+    return velocities_in_objects
+end
+
+function get_velocities_in_objects(simulation::Simulation3DQ15)
+    # https://github.com/pmocz/latticeboltzmann-python/blob/main/latticeboltzmann.py
+    #!format: off
+    velocities_in_objects = simulation.velocity_distribution[simulation.object_mask, :]
+    velocities_in_objects = (
+        velocities_in_objects[
+            :,
+            [
+                1,
+                3,
+                2,
+                5,
+                4,
+                7,
+                6,
+                15,
+                14,
+                13,
+                12,
+                11,
+                10,
+                9,
+                8
+            ]
+    )
+    #!format: on
+    return velocities_in_objects
+end
+
+
+
+function set_zou_he_boundaries!(simulation::Simulation2DQ9)
+    # https://www.youtube.com/watch?v=JFWqCQHg-Hs&t=1032s
+    # Zou He boundary condition
+    simulation.velocity_distribution[end, :, [4, 7, 8]] .= (
+        simulation.velocity_distribution[end-1, :, [4, 7, 8]]
+    )
+    simulation.velocity_distribution[1, :, [2, 6, 9]] = (
+        simulation.velocity_distribution[2, :, [2, 6, 9]]
+    )
+end
+
+function set_zou_he_boundaries!(simulation::Simulation3DQ15)
+    # https://www.youtube.com/watch?v=JFWqCQHg-Hs&t=1032s
+    # Zou He boundary condition
+    simulation.velocity_distribution[
+        end,
+        :,
+        [3, 12, 13, 14, 15],
+    ] .= simulation.velocity_distribution[
+        end-1,
+        :,
+        [3, 12, 13, 14, 15],
+    ]
+    simulation.velocity_distribution[
+        1,
+        :,
+        [2, 8, 9, 10, 11],
+    ] = simulation.velocity_distribution[
+        2,
+        :,
+        [2, 8, 9, 10, 11],
+    ]
+end
+
+
+
 @views function compute_momentum_densities!(simulation::Simulation2D)
     @inbounds for i ∈ axes(simulation.velocity_distribution, 2)
         for j ∈ axes(simulation.velocity_distribution, 1)
@@ -416,20 +492,11 @@ function stream!(simulation::Simulation3D)
 end
 
 function update!(simulation::Simulation2D)
-    # https://www.youtube.com/watch?v=JFWqCQHg-Hs&t=1032s
-    # Zou He boundary condition
-    simulation.velocity_distribution[end, :, [4, 7, 8]] .= (
-        simulation.velocity_distribution[end-1, :, [4, 7, 8]]
-    )
-    simulation.velocity_distribution[1, :, [2, 6, 9]] = (
-        simulation.velocity_distribution[2, :, [2, 6, 9]]
-    )
+    set_zou_he_boundaries!(simulation)
 
     simulation.velocity_distribution[2, :, 2] .= 2
 
-    # https://github.com/pmocz/latticeboltzmann-python/blob/main/latticeboltzmann.py
-    boundary_points = simulation.velocity_distribution[simulation.object_mask, :]
-    boundary_points = boundary_points[:, [1, 4, 5, 2, 3, 8, 9, 6, 7]]
+    velocities_in_objects = get_velocities_in_objects(simulation)
 
     compute_mass_densities!(simulation)
     compute_momentum_densities!(simulation)
@@ -438,7 +505,7 @@ function update!(simulation::Simulation2D)
 
     collide!(simulation)
 
-    simulation.velocity_distribution[simulation.object_mask, :] = boundary_points
+    simulation.velocity_distribution[simulation.object_mask, :] = velocities_in_objects
     simulation.momentum_densities[simulation.object_mask, :] .= 0
 
     stream!(simulation)
@@ -447,20 +514,13 @@ function update!(simulation::Simulation2D)
 end
 
 function update!(simulation::Simulation3D)
-    # https://www.youtube.com/watch?v=JFWqCQHg-Hs&t=1032s
-    # Zou He boundary condition
-    # simulation.velocity_distribution[end, :, :, [4, 7, 8]] .= (
-    #     simulation.velocity_distribution[end-1, :, :, [4, 7, 8]]
-    # )
-    # simulation.velocity_distribution[1, :, :, [2, 6, 9]] = (
-    #     simulation.velocity_distribution[2, :, :, [2, 6, 9]]
-    # )
+
+    set_zou_he_boundaries!(simulation)
 
     simulation.velocity_distribution[2, :, :, 2] .= 2
 
-    # https://github.com/pmocz/latticeboltzmann-python/blob/main/latticeboltzmann.py
-    # boundary_points = simulation.velocity_distribution[simulation.object_mask, :]
-    # boundary_points = boundary_points[:, [1, 4, 5, 2, 3, 8, 9, 6, 7]]
+    velocities_in_objects = get_velocities_in_objects(simulation)
+
 
     compute_mass_densities!(simulation)
     compute_momentum_densities!(simulation)
@@ -469,8 +529,8 @@ function update!(simulation::Simulation3D)
 
     collide!(simulation)
 
-    # simulation.velocity_distribution[simulation.object_mask, :] = boundary_points
-    # simulation.momentum_densities[simulation.object_mask, :] .= 0
+    simulation.velocity_distribution[simulation.object_mask, :] = velocities_in_objects
+    simulation.momentum_densities[simulation.object_mask, :] .= 0
 
     stream!(simulation)
 
@@ -564,21 +624,11 @@ end
 end
 
 function multithreaded_update!(simulation::Simulation)
-
-    # https://www.youtube.com/watch?v=JFWqCQHg-Hs&t=1032s
-    # Zou He boundary condition
-    simulation.velocity_distribution[end, :, [4, 7, 8]] .= (
-        simulation.velocity_distribution[end-1, :, [4, 7, 8]]
-    )
-    simulation.velocity_distribution[1, :, [2, 6, 9]] = (
-        simulation.velocity_distribution[2, :, [2, 6, 9]]
-    )
+    set_zou_he_boundaries!(simulation)
 
     simulation.velocity_distribution[2, :, 2] .= 2
 
-    # https://github.com/pmocz/latticeboltzmann-python/blob/main/latticeboltzmann.py
-    boundary_points = simulation.velocity_distribution[simulation.object_mask, :]
-    boundary_points = boundary_points[:, [1, 4, 5, 2, 3, 8, 9, 6, 7]]
+    velocities_in_objects = get_velocities_in_objects(simulation)
 
     threads = Threads.nthreads()
 
@@ -600,7 +650,7 @@ function multithreaded_update!(simulation::Simulation)
         collide!(simulation, chunk_start, chunk_end)
     end
 
-    simulation.velocity_distribution[simulation.object_mask, :] = boundary_points
+    simulation.velocity_distribution[simulation.object_mask, :] = velocities_in_objects
     simulation.momentum_densities[simulation.object_mask, :] .= 0
 
     stream!(simulation)
