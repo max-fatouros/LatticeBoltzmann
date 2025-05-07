@@ -5,7 +5,7 @@ using ProgressMeter
 GLMakie.activate!(; float=true)
 
 function plot_speeds(
-    simulation::Simulation;
+    simulation::Simulation2D;
     ax=nothing,
 )
     fig = nothing
@@ -30,13 +30,52 @@ function plot_speeds(
     return fig
 end
 
+function plot_speeds(
+    simulation::Simulation3D;
+    ax=nothing,
+)
+    fig = nothing
+    if isnothing(ax)
+        fig = Figure()
+        ax = Axis3(fig[1, 1])
+    end
+
+    velocities = (
+        simulation.momentum_densities
+        ./
+        simulation.mass_densities
+    )
+
+    speeds = dropdims(
+        sqrt.(sum(velocities .^ 2; dims=4));
+        dims=4,
+    )
+
+    GLMakie.voxels!(
+                    ax, 
+                    speeds;
+                    colormap=:viridis,
+                    is_air=x -> x < 0.01,
+                    alpha=0.6
+    )
+
+    return fig
+end
 function animate_speeds!(
     simulation::Simulation,
     filename="animation.mp4",
 )
     fig = Figure()
     sim = Observable(simulation)
-    ax = Axis(fig[1, 1]; aspect=DataAspect())
+    ax = nothing
+    if typeof(simulation) <: Simulation2D
+        ax = Axis(fig[1, 1]; aspect=DataAspect())
+    elseif typeof(simulation) <: Simulation3D
+        ax = Axis3(fig[1, 1])
+    end
+
+
+
     @lift(
         plot_speeds(
             $sim,
@@ -87,7 +126,12 @@ function animate_speeds_live!(
     fig = Figure()
     sim = Observable(simulation)
 
-    ax = Axis(fig[1, 1]; aspect=DataAspect())
+    ax = nothing
+    if typeof(simulation) <: Simulation2D
+        ax = Axis(fig[1, 1]; aspect=DataAspect())
+    elseif typeof(simulation) <: Simulation3D
+        ax = Axis3(fig[1, 1])
+    end
     @lift(
         plot_speeds(
             $sim,
@@ -95,9 +139,12 @@ function animate_speeds_live!(
         )
     )
 
+    # update once before displaying
+    #multithreaded_update!(simulation)
+
     display(fig)
     for i ∈ 1:simulation.time_steps
-        multithreaded_update!(sim[])
+        update!(sim[])
         resize_to_layout!(fig)
         if (i % show_every) == 0
             notify(sim)
