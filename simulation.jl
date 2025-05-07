@@ -179,8 +179,8 @@ function Simulation3DQ15(
         [0, -1, 0],
         [0, 0, 1],
         [0, 0, -1],
-        [1, 1, 0],
-        [1, 1, 0],
+        [1, 1, 1],
+        [1, 1, -1],
         [1, -1, 1],
         [1, -1, -1],
         [-1, 1, 1],
@@ -225,8 +225,10 @@ function Simulation3DQ15(
     )
 
     # bouncy upper and lower walls
-    # object_mask[1:end, 1] .= true
-    # object_mask[1:end, end] .= true
+    object_mask[:, :, 1] .= true
+    object_mask[:, :, end] .= true
+    object_mask[:, 1, :] .= true
+    object_mask[:, end, :] .= true
 
     return Simulation{3,15}()(
         velocity_distribution,
@@ -484,7 +486,7 @@ function stream!(simulation::Simulation3D)
         for j ∈ 1:nz, k ∈ 1:ny, m ∈ 1:nx
             dest_x = mod1(k + dx, nx)
             dest_y = mod1(j + dy, ny)
-            dest_z = mod1(m + dy, ny)
+            dest_z = mod1(m + dz, nz)
             simulation.velocity_distribution[dest_x, dest_y, dest_z, i] = (
                 simulation.velocity_distribution_buffer[m, k, j, i]
             )
@@ -518,7 +520,7 @@ end
 function update!(simulation::Simulation3D)
     set_zou_he_boundaries!(simulation)
 
-    simulation.velocity_distribution[2, :, :, 2] .= 2
+    simulation.velocity_distribution[5, :, :, 2] .= 2
 
     velocities_in_objects = get_velocities_in_objects(simulation)
 
@@ -650,7 +652,7 @@ end
         simulation.momentum_densities[:, :, chunk_start:chunk_end, :] ./
         simulation.mass_densities[:, :, chunk_start:chunk_end]
 
-    uu = @. u[:, :, :, 1]^2 + u[:, :, :, 2]^2
+    uu = @. u[:, :, :, 1]^2 + u[:, :, :, 2]^2 + u[:,:,:,3]^2
 
     c1 = (3 / simulation.lattice_speed_squared)
     c2 = (9 / (2 * simulation.lattice_speed_squared^2))
