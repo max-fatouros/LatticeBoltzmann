@@ -617,13 +617,12 @@ end
     c3 = (3 / (2 * simulation.lattice_speed_squared))
 
     @inbounds for i ∈ axes(simulation.equilibrium_distribution, 3)
+        #! format: off
         uv = @. (
             simulation.directions[i][1] * u[:, :, 1]
-            +
-            simulation.directions[i][2] * u[:, :, 2]
+            + simulation.directions[i][2] * u[:, :, 2]
         )
 
-        #! format: off
         # Tried
         # - @views
 
