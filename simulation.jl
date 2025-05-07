@@ -631,18 +631,3 @@ function run!(
     end
     return simulations
 end
-
-function add_sphere!(
-    simulation::Simulation;
-    position,
-    radius,
-)
-    cartesian_position = CartesianIndex(position...)
-    for index ∈ CartesianIndices(simulation.object_mask)
-        r = index - cartesian_position
-        r_norm = norm(Tuple(r))
-        if r_norm < radius
-            simulation.object_mask[index] = true
-        end
-    end
-end
