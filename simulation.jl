@@ -96,10 +96,9 @@ function Simulation(
         divisions...,
     )
 
-    # object_mask[1, 1:end] .= true
-    # object_mask[end, 1:end] .= true
-    # object_mask[1:end, 1] .= true
-    # object_mask[1:end, end] .= true
+    # bouncy upper and lower walls
+    object_mask[1:end, 1] .= true
+    object_mask[1:end, end] .= true
 
     return Simulation(
         velocity_distribution,
