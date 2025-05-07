@@ -226,6 +226,137 @@ function update!(simulation::Simulation)
     return
 end
 
+function compute_momentum_densities!(
+    simulation::Simulation,
+    chunk_start::Int,
+    chunk_end::Int,
+)
+    @inbounds for i ∈ chunk_start:chunk_end
+        for j ∈ axes(simulation.velocity_distribution, 1)
+            #! format: off
+            @views simulation.momentum_densities[j, i, :] = (
+                sum(
+                    simulation.directions
+                    .* simulation.velocity_distribution[j, i, :],
+                )
+            )
+            #! format: on
+        end
+    end
+    return
+end
+
+function compute_mass_densities!(simulation::Simulation, chunk_start::Int, chunk_end::Int)
+    #tried
+    # - @views
+    @views simulation.mass_densities[:, chunk_start:chunk_end] .=
+        dropdims(
+            sum(simulation.velocity_distribution[:, chunk_start:chunk_end, :]; dims=3);
+            dims=3,
+        )
+    return
+end
+
+@views function compute_equilibrium_distribution!(
+    simulation::Simulation,
+    chunk_start::Int,
+    chunk_end::Int,
+)
+    u =
+        simulation.momentum_densities[:, chunk_start:chunk_end, :] ./
+        simulation.mass_densities[:, chunk_start:chunk_end]
+
+    uu = sum(u .^ 2; dims=3)[:, :, 1]
+
+    c1 = (3 / simulation.lattice_speed_squared)
+    c2 = (9 / (2 * simulation.lattice_speed_squared^2))
+    c3 = (3 / (2 * simulation.lattice_speed_squared))
+
+    @inbounds for i ∈ axes(simulation.equilibrium_distribution, 3)
+        uv = @. (
+            simulation.directions[i][1] * u[:, :, 1]
+            +
+            simulation.directions[i][2] * u[:, :, 2]
+        )
+
+        #! format: off
+        # Tried
+        # - @views
+
+        @. simulation.equilibrium_distribution[:,chunk_start:chunk_end,i] = (
+            simulation.weights[i]
+            * simulation.mass_densities[:, chunk_start:chunk_end]
+            * (
+                1
+                + (c1 * uv)
+                + (c2 * uv.^2)
+                - (c3 * uu)
+            )
+        )
+        #! format: on
+    end
+    return
+end
+
+@views function collide!(simulation::Simulation, chunk_start::Int, chunk_end::Int)
+    #! format: off
+    @. simulation.velocity_distribution[:, chunk_start:chunk_end, :] = (
+        simulation.velocity_distribution[:, chunk_start:chunk_end, :]
+        + (simulation.delta_t / simulation.characteristic_time)
+        * (
+            simulation.equilibrium_distribution[:, chunk_start:chunk_end, :]
+            - simulation.velocity_distribution[:, chunk_start:chunk_end, :])
+    )
+    #! format: on
+
+    return
+end
+
+function multithreaded_update!(simulation::Simulation)
+
+    # https://www.youtube.com/watch?v=JFWqCQHg-Hs&t=1032s
+    # Zou He boundary condition
+    simulation.velocity_distribution[end, :, [4, 7, 8]] .= (
+        simulation.velocity_distribution[end-1, :, [4, 7, 8]]
+    )
+    simulation.velocity_distribution[1, :, [2, 6, 9]] = (
+        simulation.velocity_distribution[2, :, [2, 6, 9]]
+    )
+
+    simulation.velocity_distribution[2, :, 2] .= 2
+
+    # https://github.com/pmocz/latticeboltzmann-python/blob/main/latticeboltzmann.py
+    boundary_points = simulation.velocity_distribution[simulation.object_mask, :]
+    boundary_points = boundary_points[:, [1, 4, 5, 2, 3, 8, 9, 6, 7]]
+
+    threads = Threads.nthreads()
+
+    dimension_size = size(simulation.velocity_distribution)[2]
+    chunksize = div(dimension_size, threads, RoundUp)
+
+    Threads.@threads for thread_index ∈ 1:threads
+        chunk_start = ((thread_index - 1) * chunksize) + 1
+        chunk_end = mod1(
+            ((thread_index) * chunksize),
+            dimension_size,
+        )
+
+        # https://github.com/pmocz/latticeboltzmann-python/blob/main/latticeboltzmann.py
+        compute_mass_densities!(simulation, chunk_start, chunk_end)
+        compute_momentum_densities!(simulation, chunk_start, chunk_end)
+        compute_equilibrium_distribution!(simulation, chunk_start, chunk_end)
+
+        collide!(simulation, chunk_start, chunk_end)
+    end
+
+    simulation.velocity_distribution[simulation.object_mask, :] = boundary_points
+    simulation.momentum_densities[simulation.object_mask, :] .= 0
+
+    stream!(simulation)
+
+    return
+end
+
 function run!(
     simulation::Simulation;
     prog=nothing,
@@ -237,9 +368,15 @@ function run!(
     )
     simulations::Vector{Simulation} = []
 
+    if Threads.nthreads == 1
+        step! = update!
+    else
+        step! = multithreaded_update!
+    end
+
     for (i, _) ∈ enumerate(1:simulation.time_steps)
         next!(prog)
-        update!(simulation)
+        step!(simulation)
         if i % save_every == 0
             push!(simulations, deepcopy(simulation))
         end
