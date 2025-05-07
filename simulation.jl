@@ -542,7 +542,7 @@ function update!(simulation::Simulation3D)
 end
 
 function compute_momentum_densities!(
-    simulation::Simulation,
+    simulation::Simulation2D,
     chunk_start::Int,
     chunk_end::Int,
 )
@@ -561,7 +561,29 @@ function compute_momentum_densities!(
     return
 end
 
-function compute_mass_densities!(simulation::Simulation, chunk_start::Int, chunk_end::Int)
+function compute_momentum_densities!(
+    simulation::Simulation3D,
+    chunk_start::Int,
+    chunk_end::Int,
+)
+    @inbounds for i ∈ chunk_start:chunk_end
+        for j ∈ axes(simulation.velocity_distribution, 2)
+            for k in axes(simulation.velocity_distribution, 1)
+                #! format: off
+                @views simulation.momentum_densities[k, j, i, :] = (
+                    sum(
+                        simulation.directions
+                        .* simulation.velocity_distribution[k, j, i, :],
+                    )
+                )
+                #! format: on
+            end
+        end
+    end
+    return
+end
+
+function compute_mass_densities!(simulation::Simulation2D, chunk_start::Int, chunk_end::Int)
     #tried
     # - @views
     @views simulation.mass_densities[:, chunk_start:chunk_end] .=
@@ -572,8 +594,19 @@ function compute_mass_densities!(simulation::Simulation, chunk_start::Int, chunk
     return
 end
 
+function compute_mass_densities!(simulation::Simulation3D, chunk_start::Int, chunk_end::Int)
+    #tried
+    # - @views
+    @views simulation.mass_densities[:, :, chunk_start:chunk_end] .=
+        dropdims(
+            sum(simulation.velocity_distribution[:, :, chunk_start:chunk_end, :]; dims=4);
+            dims=4,
+        )
+    return
+end
+
 @views function compute_equilibrium_distribution!(
-    simulation::Simulation,
+    simulation::Simulation2D,
     chunk_start::Int,
     chunk_end::Int,
 )
@@ -613,7 +646,48 @@ end
     return
 end
 
-@views function collide!(simulation::Simulation, chunk_start::Int, chunk_end::Int)
+@views function compute_equilibrium_distribution!(
+    simulation::Simulation3D,
+    chunk_start::Int,
+    chunk_end::Int,
+)
+    u =
+        simulation.momentum_densities[:, :, chunk_start:chunk_end, :] ./
+        simulation.mass_densities[:, :, chunk_start:chunk_end]
+
+    uu = @. u[:, :, :, 1]^2 + u[:, :, :, 2]^2
+
+    c1 = (3 / simulation.lattice_speed_squared)
+    c2 = (9 / (2 * simulation.lattice_speed_squared^2))
+    c3 = (3 / (2 * simulation.lattice_speed_squared))
+
+    @inbounds for i ∈ axes(simulation.equilibrium_distribution, 4)
+        uv = @. (
+            simulation.directions[i][1] * u[:, :, :, 1]
+            +
+            simulation.directions[i][2] * u[:, :, :, 2]
+        )
+
+        #! format: off
+        # Tried
+        # - @views
+
+        @. simulation.equilibrium_distribution[:, :, chunk_start:chunk_end,i] = (
+            simulation.weights[i]
+            * simulation.mass_densities[:, :, chunk_start:chunk_end]
+            * (
+                1
+                + (c1 * uv)
+                + (c2 * uv.^2)
+                - (c3 * uu)
+            )
+        )
+        #! format: on
+    end
+    return
+end
+
+@views function collide!(simulation::Simulation2D, chunk_start::Int, chunk_end::Int)
     #! format: off
     @. simulation.velocity_distribution[:, chunk_start:chunk_end, :] = (
         simulation.velocity_distribution[:, chunk_start:chunk_end, :]
@@ -626,8 +700,21 @@ end
 
     return
 end
+@views function collide!(simulation::Simulation3D, chunk_start::Int, chunk_end::Int)
+    #! format: off
+    @. simulation.velocity_distribution[:, :, chunk_start:chunk_end, :] = (
+        simulation.velocity_distribution[:, :, chunk_start:chunk_end, :]
+        + (simulation.delta_t / simulation.characteristic_time)
+        * (
+            simulation.equilibrium_distribution[:, :, chunk_start:chunk_end, :]
+            - simulation.velocity_distribution[:, :, chunk_start:chunk_end, :])
+    )
+    #! format: on
 
-function multithreaded_update!(simulation::Simulation)
+    return
+end
+
+function multithreaded_update!(simulation::Simulation2D)
     set_zou_he_boundaries!(simulation)
 
     simulation.velocity_distribution[2, :, 2] .= 2
@@ -637,6 +724,41 @@ function multithreaded_update!(simulation::Simulation)
     threads = Threads.nthreads()
 
     dimension_size = size(simulation.velocity_distribution)[2]
+    chunksize = div(dimension_size, threads, RoundUp)
+
+    Threads.@threads for thread_index ∈ 1:threads
+        chunk_start = ((thread_index - 1) * chunksize) + 1
+        chunk_end = mod1(
+            ((thread_index) * chunksize),
+            dimension_size,
+        )
+
+        compute_mass_densities!(simulation, chunk_start, chunk_end)
+        compute_momentum_densities!(simulation, chunk_start, chunk_end)
+        compute_equilibrium_distribution!(simulation, chunk_start, chunk_end)
+
+        collide!(simulation, chunk_start, chunk_end)
+    end
+
+    simulation.velocity_distribution[simulation.object_mask, :] = velocities_in_objects
+    simulation.momentum_densities[simulation.object_mask, :] .= 0
+
+    stream!(simulation)
+
+    return
+end
+
+
+function multithreaded_update!(simulation::Simulation3D)
+    set_zou_he_boundaries!(simulation)
+
+    simulation.velocity_distribution[2, :, :, 2] .= 2
+
+    velocities_in_objects = get_velocities_in_objects(simulation)
+
+    threads = Threads.nthreads()
+
+    dimension_size = size(simulation.velocity_distribution)[3]
     chunksize = div(dimension_size, threads, RoundUp)
 
     Threads.@threads for thread_index ∈ 1:threads
