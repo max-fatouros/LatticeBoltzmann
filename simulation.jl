@@ -45,8 +45,6 @@ function Simulation(
 
     velocity_distribution = initial_velocity_distribution + random_velocity_distribution
 
-    velocity_distribution[:, :, 2] .= 2
-
     mass_densities = zeros(
         Float64,
         divisions...,
@@ -207,7 +205,16 @@ function stream!(simulation::Simulation)
 end
 
 function update!(simulation::Simulation)
-    stream!(simulation)
+    # https://www.youtube.com/watch?v=JFWqCQHg-Hs&t=1032s
+    # Zou He boundary condition
+    simulation.velocity_distribution[end, :, [4, 7, 8]] .= (
+        simulation.velocity_distribution[end-1, :, [4, 7, 8]]
+    )
+    simulation.velocity_distribution[1, :, [2, 6, 9]] = (
+        simulation.velocity_distribution[2, :, [2, 6, 9]]
+    )
+
+    simulation.velocity_distribution[2, :, 2] .= 2
 
     # https://github.com/pmocz/latticeboltzmann-python/blob/main/latticeboltzmann.py
     boundary_points = simulation.velocity_distribution[simulation.object_mask, :]
@@ -222,6 +229,8 @@ function update!(simulation::Simulation)
 
     simulation.velocity_distribution[simulation.object_mask, :] = boundary_points
     simulation.momentum_densities[simulation.object_mask, :] .= 0
+
+    stream!(simulation)
 
     return
 end
