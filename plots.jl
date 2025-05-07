@@ -30,7 +30,38 @@ function plot_speeds(
     return fig
 end
 
-function animate_speeds(simulations::Vector{Simulation})
+function animate_speeds(
+    simulation::Simulation,
+    filename="animation.mp4",
+)
+    fig = Figure()
+    sim = Observable(simulation)
+    ax = Axis(fig[1, 1]; aspect=DataAspect())
+    @lift(
+        plot_speeds(
+            $sim,
+            ax=ax,
+        )
+    )
+    resize_to_layout!(fig)
+
+    record(
+        fig,
+        filename,
+        1:(simulation.time_steps÷100),
+    ) do t
+        @show t
+        for _ ∈ 1:100
+            multithreaded_update!(sim[])
+        end
+        # next!(prog)
+        notify(sim)
+        return sleep(1e-3)
+    end
+    return
+end
+
+function animate_speeds_with_slider(simulations::Vector{Simulation})
     fig = Figure()
     slider = Slider(
         fig[2, 1];
@@ -51,12 +82,11 @@ end
 
 function animate_speeds_live(
     simulation,
-    iterations,
 )
     fig = Figure()
     sim = Observable(simulation)
 
-    ax = Axis(fig[1, 1])
+    ax = Axis(fig[1, 1]; aspect=DataAspect())
     @lift(
         plot_speeds(
             $sim,
@@ -65,10 +95,11 @@ function animate_speeds_live(
     )
 
     display(fig)
-    for i ∈ 1:iterations
-        update!(sim[])
+    for i ∈ 1:simulation.time_steps
+        multithreaded_update!(sim[])
+        resize_to_layout!(fig)
         notify(sim)
-        display(fig)
+        sleep(1e-3)
     end
     return
 end
