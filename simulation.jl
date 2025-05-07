@@ -2,9 +2,14 @@ using StaticArrays
 using LinearAlgebra
 using ProgressMeter
 
-#TODO: import only on macos?
-using AppleAccelerate
-AppleAccelerate.@replaceBase(^, /)
+# Requires two static conditionals
+# https://discourse.julialang.org/t/is-importing-module-is-allowed-inside-static/28975/2
+@static if Sys.isapple()
+    import AppleAccelerate
+end
+@static if Sys.isapple()
+    AppleAccelerate.@replaceBase(^, /)
+end
 
 struct Simulation
     velocity_distribution::Array{Float64,3}
