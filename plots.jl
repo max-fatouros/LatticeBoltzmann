@@ -51,16 +51,27 @@ function plot_speeds(
         dims=4,
     )
 
-    GLMakie.voxels!(
-                    ax, 
-                    speeds;
-                    colormap=:viridis,
-                    is_air=x -> x < 0.01,
-                    alpha=0.6
+    GLMakie.volume!(
+        ax,
+        speeds;
+        colormap=:viridis,
+        alpha=0.5,
     )
 
     return fig
 end
+
+function plot_objects(
+    simulation::Simulation3D;
+    ax,
+)
+    return GLMakie.volume!(
+        ax,
+        simulation.object_mask;
+        alpha=0.8,
+    )
+end
+
 function animate_speeds!(
     simulation::Simulation,
     filename="animation.mp4",
@@ -73,8 +84,6 @@ function animate_speeds!(
     elseif typeof(simulation) <: Simulation3D
         ax = Axis3(fig[1, 1])
     end
-
-
 
     @lift(
         plot_speeds(
@@ -139,8 +148,15 @@ function animate_speeds_live!(
         )
     )
 
+    # @lift(
+    #     plot_objects(
+    #         $sim,
+    #         ax=ax,
+    #     )
+    # )
+
     # update once before displaying
-    #multithreaded_update!(simulation)
+    update!(simulation)
 
     display(fig)
     for i ∈ 1:simulation.time_steps
@@ -148,6 +164,7 @@ function animate_speeds_live!(
         resize_to_layout!(fig)
         if (i % show_every) == 0
             notify(sim)
+            println("frame $i")
         end
         sleep(1e-3)
     end
