@@ -484,9 +484,9 @@ function stream!(simulation::Simulation3D)
         nx, ny, nz = size(simulation.velocity_distribution)[1:3]
 
         for j ∈ 1:nz, k ∈ 1:ny, m ∈ 1:nx
-            dest_x = mod1(k + dx, nx)
-            dest_y = mod1(j + dy, ny)
-            dest_z = mod1(m + dz, nz)
+            dest_x = mod1(m + dx, nx)
+            dest_y = mod1(k + dy, ny)
+            dest_z = mod1(j + dz, nz)
             simulation.velocity_distribution[dest_x, dest_y, dest_z, i] = (
                 simulation.velocity_distribution_buffer[m, k, j, i]
             )
