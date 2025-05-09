@@ -141,12 +141,9 @@ function animate_speeds_live!(
     #     )
     # )
 
-    # update once before displaying
-    update!(simulation)
-
     display(fig)
     for i ∈ 1:simulation.time_steps
-        update!(sim[])
+        multithreaded_update!(sim[])
         resize_to_layout!(fig)
         if (i % show_every) == 0
             notify(sim)
