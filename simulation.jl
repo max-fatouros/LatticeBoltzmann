@@ -776,7 +776,7 @@ end
 function multithreaded_update!(simulation::Simulation3D)
     set_zou_he_boundaries!(simulation)
 
-    simulation.velocity_distribution[2, :, :, 2] .= 2
+    simulation.velocity_distribution[5, :, :, 2] .= 5
 
     velocities_in_objects = get_velocities_in_objects(simulation)
 
