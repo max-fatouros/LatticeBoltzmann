@@ -118,8 +118,8 @@ function Simulation2DQ9(
     )
 
     # bouncy upper and lower walls
-    object_mask[1:end, 1] .= true
-    object_mask[1:end, end] .= true
+    # object_mask[1:end, 1] .= true
+    # object_mask[1:end, end] .= true
 
     return Simulation{2,9}()(
         velocity_distribution,
@@ -225,10 +225,10 @@ function Simulation3DQ15(
     )
 
     # bouncy upper and lower walls
-    object_mask[:, :, 1] .= true
-    object_mask[:, :, end] .= true
-    object_mask[:, 1, :] .= true
-    object_mask[:, end, :] .= true
+    # object_mask[:, :, 1] .= true
+    # object_mask[:, :, end] .= true
+    # object_mask[:, 1, :] .= true
+    # object_mask[:, end, :] .= true
 
     return Simulation{3,15}()(
         velocity_distribution,
@@ -776,7 +776,7 @@ end
 function multithreaded_update!(simulation::Simulation3D)
     set_zou_he_boundaries!(simulation)
 
-    simulation.velocity_distribution[5, :, :, 2] .= 5
+    simulation.velocity_distribution[5, :, :, 2] .= 4
 
     velocities_in_objects = get_velocities_in_objects(simulation)
 
