@@ -507,7 +507,7 @@ end
 function stream!(simulation::Simulation3D)
     simulation.velocity_distribution_buffer .= simulation.velocity_distribution
 
-    @inbounds for i ∈ axes(simulation.velocity_distribution, 4)
+    @inbounds Threads.@threads for i ∈ axes(simulation.velocity_distribution, 4)
         dx, dy, dz = simulation.directions[i]
         nx, ny, nz = size(simulation.velocity_distribution)[1:3]
 
