@@ -164,7 +164,7 @@ function animate_speeds_live!(
         resize_to_layout!(fig)
         if (i % show_every) == 0
             notify(sim)
-            println("frame $i")
+            @info "frame $i"
         end
         sleep(1e-3)
     end
