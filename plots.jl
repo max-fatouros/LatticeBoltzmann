@@ -7,8 +7,9 @@ include("simulation.jl")
 GLMakie.activate!(; float=true)
 
 function plot_speeds(
-    simulation::Simulation2D;
+    simulation::Observable{<:Simulation2D};
     ax=nothing,
+    kwargs...,
 )
     fig = nothing
     if isnothing(ax)
@@ -16,16 +17,26 @@ function plot_speeds(
         ax = Axis(fig[1, 1])
     end
 
-    speeds = get_speeds(simulation)
+    speeds = @lift(get_speeds($simulation))
 
-    CairoMakie.image!(ax, speeds; colormap=:viridis)
+    defaults = (;
+        colormap=:viridis,
+    )
+    kwargs = merge(defaults, kwargs)
+
+    CairoMakie.image!(
+        ax,
+        speeds;
+        kwargs...,
+    )
 
     return fig
 end
 
 function plot_speeds(
-    simulation::Simulation3D;
+    simulation::Observable{<:Simulation3D};
     ax=nothing,
+    kwargs...,
 )
     fig = nothing
     if isnothing(ax)
@@ -33,27 +44,40 @@ function plot_speeds(
         ax = Axis3(fig[1, 1]; aspect=:data)
     end
 
-    speeds = get_speeds(simulation)
+    speeds = @lift(get_speeds($simulation))
+
+    defaults = (;
+        algorithm=:mip,
+        colormap=:viridis,
+    )
+    kwargs = merge(defaults, kwargs)
 
     GLMakie.volume!(
         ax,
         speeds;
-        algorithm=:mip,
-        colormap=:viridis,
-        alpha=0.5,
+        kwargs...,
     )
 
     return fig
 end
 
+function plot_speeds(
+    simulation::Simulation;
+    ax=nothing,
+    kwargs...,
+)
+    return plot_speeds(Observable(simulation); ax=ax, kwargs...)
+end
+
 function plot_objects(
-    simulation::Simulation3D;
+    simulation::Observable{<:Simulation3D};
     ax,
+    kwargs...,
 )
     GLMakie.volume!(
         ax,
-        simulation.object_mask;
-        alpha=0.8,
+        @lift(identity($simulation.object_mask));
+        kwargs...,
     )
     return
 end
@@ -117,6 +141,7 @@ end
 function animate_speeds_live!(
     simulation;
     show_every=100,
+    kwargs...,
 )
     fig = Figure()
     sim = Observable(simulation)
@@ -127,19 +152,16 @@ function animate_speeds_live!(
     elseif typeof(simulation) <: Simulation3D
         ax = Axis3(fig[1, 1]; aspect=:data)
     end
-    @lift(
-        plot_speeds(
-            $sim,
-            ax=ax,
-        )
-    )
 
-    # @lift(
-    #     plot_objects(
-    #         $sim,
-    #         ax=ax,
-    #     )
+    # plot_objects(
+    #     sim;
+    #     ax=ax,
     # )
+    plot_speeds(
+        sim;
+        ax=ax,
+        kwargs...,
+    )
 
     display(fig)
     for i ∈ 1:simulation.time_steps
