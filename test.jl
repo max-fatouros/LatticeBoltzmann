@@ -1,3 +1,4 @@
+using Revise
 using Profile
 using BenchmarkTools
 
@@ -20,10 +21,16 @@ simulation = Simulation3DQ15(
     divisions=(75, 30, 30),
 )
 
-add_sphere!(
+# add_sphere!(
+#     simulation;
+#     position=(15, 15, 15),
+#     radius=10,
+# )
+
+add_rectangle!(
     simulation;
     position=(15, 15, 15),
-    radius=10,
+    lengths=(2, 5, 5),
 )
 
 update!(simulation)
