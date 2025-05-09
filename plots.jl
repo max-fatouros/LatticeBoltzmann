@@ -19,9 +19,7 @@ function plot_speeds(
 
     speeds = @lift(get_speeds($simulation))
 
-    defaults = (;
-        colormap=:viridis,
-    )
+    defaults = (; colormap=:viridis)
     kwargs = merge(defaults, kwargs)
 
     CairoMakie.image!(
@@ -46,10 +44,7 @@ function plot_speeds(
 
     speeds = @lift(get_speeds($simulation))
 
-    defaults = (;
-        algorithm=:mip,
-        colormap=:viridis,
-    )
+    defaults = (; algorithm=:mip, colormap=:viridis)
     kwargs = merge(defaults, kwargs)
 
     GLMakie.volume!(
@@ -70,16 +65,51 @@ function plot_speeds(
 end
 
 function plot_objects(
-    simulation::Observable{<:Simulation3D};
-    ax,
+    simulation::Observable{<:Simulation2D};
+    ax=nothing,
     kwargs...,
 )
+    fig = nothing
+    if isnothing(ax)
+        fig = Figure()
+        ax = Axis(fig[1, 1]; aspect=DataAspect())
+    end
+    CairoMakie.image!(
+        ax,
+        @lift(identity($simulation.object_mask));
+        kwargs...,
+    )
+    return fig
+end
+
+function plot_objects(
+    simulation::Observable{<:Simulation3D};
+    ax=nothing,
+    kwargs...,
+)
+    fig = nothing
+    if isnothing(ax)
+        fig = Figure()
+        ax = Axis3(fig[1, 1]; aspect=:data)
+    end
     GLMakie.volume!(
         ax,
         @lift(identity($simulation.object_mask));
         kwargs...,
     )
-    return
+    return fig
+end
+
+function plot_objects(
+    simulation::Simulation;
+    ax=nothing,
+    kwargs...,
+)
+    return plot_objects(
+        Observable(simulation);
+        ax=ax,
+        kwargs...,
+    )
 end
 
 function animate_speeds!(
