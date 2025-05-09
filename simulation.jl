@@ -753,7 +753,7 @@ function multithreaded_update!(simulation::Simulation2D)
 
     Threads.@threads for thread_index ∈ 1:threads
         chunk_start = ((thread_index - 1) * chunksize) + 1
-        chunk_end = mod1(
+        chunk_end = min(
             ((thread_index) * chunksize),
             dimension_size,
         )
@@ -787,7 +787,7 @@ function multithreaded_update!(simulation::Simulation3D)
 
     Threads.@threads for thread_index ∈ 1:threads
         chunk_start = ((thread_index - 1) * chunksize) + 1
-        chunk_end = mod1(
+        chunk_end = min(
             ((thread_index) * chunksize),
             dimension_size,
         )
