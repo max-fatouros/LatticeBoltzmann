@@ -2,6 +2,8 @@ using CairoMakie
 using GLMakie
 using ProgressMeter
 
+include("simulation.jl")
+
 GLMakie.activate!(; float=true)
 
 function plot_speeds(
@@ -14,16 +16,7 @@ function plot_speeds(
         ax = Axis(fig[1, 1])
     end
 
-    velocities = (
-        simulation.momentum_densities
-        ./
-        simulation.mass_densities
-    )
-
-    speeds = dropdims(
-        sqrt.(sum(velocities .^ 2; dims=3));
-        dims=3,
-    )
+    speeds = get_speeds(simulation)
 
     CairoMakie.image!(ax, speeds; colormap=:viridis)
 
@@ -40,20 +33,12 @@ function plot_speeds(
         ax = Axis3(fig[1, 1]; aspect=:data)
     end
 
-    velocities = (
-        simulation.momentum_densities
-        ./
-        simulation.mass_densities
-    )
-
-    speeds = dropdims(
-        sqrt.(sum(velocities .^ 2; dims=4));
-        dims=4,
-    )
+    speeds = get_speeds(simulation)
 
     GLMakie.volume!(
         ax,
         speeds;
+        algorithm=:mip,
         colormap=:viridis,
         alpha=0.5,
     )

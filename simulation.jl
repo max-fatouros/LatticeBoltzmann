@@ -246,6 +246,34 @@ function Simulation3DQ15(
     )
 end
 
+function get_speeds(simulation::Simulation2D)
+    velocities = (
+        simulation.momentum_densities
+        ./
+        simulation.mass_densities
+    )
+
+    speeds = dropdims(
+        sqrt.(sum(velocities .^ 2; dims=3));
+        dims=3,
+    )
+    return speeds
+end
+
+function get_speeds(simulation::Simulation3D)
+    velocities = (
+        simulation.momentum_densities
+        ./
+        simulation.mass_densities
+    )
+
+    speeds = dropdims(
+        sqrt.(sum(velocities .^ 2; dims=4));
+        dims=4,
+    )
+    return speeds
+end
+
 function get_velocities_in_objects(simulation::Simulation2DQ9)
     # https://github.com/pmocz/latticeboltzmann-python/blob/main/latticeboltzmann.py
     velocities_in_objects = simulation.velocity_distribution[simulation.object_mask, :]
