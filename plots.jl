@@ -37,7 +37,7 @@ function plot_speeds(
     fig = nothing
     if isnothing(ax)
         fig = Figure()
-        ax = Axis3(fig[1, 1])
+        ax = Axis3(fig[1, 1]; aspect=:data)
     end
 
     velocities = (
@@ -82,7 +82,7 @@ function animate_speeds!(
     if typeof(simulation) <: Simulation2D
         ax = Axis(fig[1, 1]; aspect=DataAspect())
     elseif typeof(simulation) <: Simulation3D
-        ax = Axis3(fig[1, 1])
+        ax = Axis3(fig[1, 1]; aspect=:data)
     end
 
     @lift(
@@ -139,7 +139,7 @@ function animate_speeds_live!(
     if typeof(simulation) <: Simulation2D
         ax = Axis(fig[1, 1]; aspect=DataAspect())
     elseif typeof(simulation) <: Simulation3D
-        ax = Axis3(fig[1, 1])
+        ax = Axis3(fig[1, 1]; aspect=:data)
     end
     @lift(
         plot_speeds(
