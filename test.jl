@@ -16,14 +16,14 @@ include("geometry.jl")
 # )
 
 simulation = Simulation3DQ15(
-    10_000;
-    divisions=(200, 30, 30),
+    500;
+    divisions=(75, 30, 30),
 )
 
 add_sphere!(
     simulation;
     position=(15, 15, 15),
-    radius=5,
+    radius=10,
 )
 
 update!(simulation)
