@@ -16,6 +16,20 @@ function add_sphere!(
     end
 end
 
+function add_cylinder!(
+    simulation::Simulation;
+    position,
+    radius,
+)
+    for index ∈ CartesianIndices(simulation.object_mask)
+        r = Tuple(index) .- position
+        r_norm = norm(r[1:2])
+        if r_norm < radius
+            simulation.object_mask[index] = true
+        end
+    end
+end
+
 function add_rectangle!(
     simultion::Simulation;
     position,
