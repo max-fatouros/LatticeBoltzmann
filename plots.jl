@@ -65,11 +65,12 @@ function plot_objects(
     simulation::Simulation3D;
     ax,
 )
-    return GLMakie.volume!(
+    GLMakie.volume!(
         ax,
         simulation.object_mask;
         alpha=0.8,
     )
+    return
 end
 
 function animate_speeds!(
