@@ -15,3 +15,16 @@ function add_sphere!(
         end
     end
 end
+
+function add_rectangle!(
+    simultion::Simulation;
+    position,
+    lengths,
+)
+    for index ∈ CartesianIndices(simulation.object_mask)
+        r = Tuple(index) .- position
+        if all(abs.(r) .< lengths)
+            simulation.object_mask[index] = true
+        end
+    end
+end
