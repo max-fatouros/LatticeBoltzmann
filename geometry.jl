@@ -1,5 +1,5 @@
 
-include("simulation.jl")
+using ProgressMeter
 
 function add_sphere!(
     simulation::Simulation;
@@ -41,4 +41,81 @@ function add_rectangle!(
             simulation.object_mask[index] = true
         end
     end
+end
+
+function read_point_cloud(filename)
+    point_cloud = []
+    a = open(filename) do f
+        for line ∈ readlines(f)
+            words = split(line)
+            xyz = [
+                parse(Float64, word)
+                for word ∈ words
+            ]
+            push!(point_cloud, xyz)
+        end
+    end
+    return transpose(hcat(point_cloud...))
+end
+
+function rotation_matrix(x_angle, y_angle, z_angle)
+    # https://en.wikipedia.org/wiki/Rotation_matrix#General_3D_rotations
+    #!format: off
+    x_matrix = [
+        1 0            0
+        0 cos(x_angle) -sin(x_angle)
+        0 sin(x_angle) cos(x_angle)
+    ]
+
+    y_matrix = [
+        cos(y_angle)  0 sin(y_angle)
+        0             1 0
+        -sin(y_angle) 0 cos(y_angle)
+
+    ]
+    z_matrix = [
+        cos(z_angle) -sin(z_angle) 0
+        sin(z_angle) cos(z_angle)  0
+        0            0             1
+    ]
+    #!format: on
+
+    return x_matrix * y_matrix * z_matrix
+end
+
+function add_point_cloud(
+    simulation3D;
+    filename,
+    position,
+    rotation,
+    side_length,
+)
+    point_cloud = read_point_cloud(filename)
+
+    # normalize
+    max_point_cloud_length = maximum(point_cloud)
+    point_cloud = (side_length / max_point_cloud_length) * point_cloud
+
+    # rotate
+    point_cloud *= rotation_matrix(rotation...)
+
+    # shift
+    point_cloud_means = mean(point_cloud; dims=1)
+    point_cloud .-= point_cloud_means
+    point_cloud .+= collect(position)'
+
+    # discretize
+    discretized_point_cloud = round.(Int, point_cloud)
+    discretized_point_cloud = unique(discretized_point_cloud; dims=1)
+
+    for i ∈ axes(discretized_point_cloud, 1)
+        cartesian_index = CartesianIndex(
+            Tuple(
+                discretized_point_cloud[i, :],
+            ),
+        )
+        simulation.object_mask[cartesian_index] = true
+    end
+
+    return
 end
