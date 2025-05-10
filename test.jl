@@ -2,9 +2,9 @@ using Revise
 using Profile
 using BenchmarkTools
 
-include("simulation.jl")
-include("plots.jl")
-include("geometry.jl")
+includet("simulation.jl")
+includet("plots.jl")
+includet("geometry.jl")
 
 # simulation = Simulation{2, 9}(
 #     100_000,
