@@ -259,14 +259,18 @@ function Simulation3DQ15(
 end
 
 
+
+
+
+
 function set_sources!(simulation::Simulation)
     for source in simulation.sources
         direction_index_search = findall(x -> x == source.direction, simulation.directions)
         if isempty(direction_index_search)
             ArgumentError(source.direction, "direction does not exist")
         end
-        @show direction_index = direction_index_search[1]
-        @show simulation.velocity_distribution[source.ranges..., direction_index] .= source.speed
+        direction_index = direction_index_search[1]
+        simulation.velocity_distribution[source.ranges..., direction_index] .= source.speed
     end
 end
 
