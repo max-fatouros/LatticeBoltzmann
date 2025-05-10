@@ -203,5 +203,5 @@ function animate_speeds_live!(
         end
         sleep(1e-3)
     end
-    return
+    return fig
 end
