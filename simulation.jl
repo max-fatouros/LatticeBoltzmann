@@ -131,7 +131,7 @@ function Simulation2DQ9(
     # object_mask[1:end, 1] .= true
     # object_mask[1:end, end] .= true
 
-    return Simulation{2,9}()(
+    return Simulation2DQ9(
         velocity_distribution,
         similar(velocity_distribution),
         equilibrium_distribution,
@@ -241,7 +241,7 @@ function Simulation3DQ15(
     # object_mask[:, 1, :] .= true
     # object_mask[:, end, :] .= true
 
-    return Simulation{3,15}()(
+    return Simulation3DQ15(
         velocity_distribution,
         similar(velocity_distribution),
         equilibrium_distribution,
