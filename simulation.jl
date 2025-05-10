@@ -15,6 +15,15 @@ end
     AppleAccelerate.@replaceBase(^, /)
 end
 
+
+Range = Union{Int, UnitRange, Colon}
+
+struct Source{N}
+    ranges::SVector{N, Range}
+    direction::SVector{N, Int8}
+    speed::Float64
+end 
+
 struct Simulation{A,B,C}
     velocity_distribution::Array{Float64,B}
     velocity_distribution_buffer::Array{Float64,B}
@@ -28,6 +37,7 @@ struct Simulation{A,B,C}
     time_steps::Int
     delta_t::Float64
     object_mask::Array{Bool,A}
+    sources::Vector{Source{A}}
 end
 
 function Simulation{dimensions,directions}() where {dimensions,directions}
@@ -134,6 +144,7 @@ function Simulation2DQ9(
         time_steps,
         delta_t,
         object_mask,
+        []
     )
 end
 
@@ -243,8 +254,22 @@ function Simulation3DQ15(
         time_steps,
         delta_t,
         object_mask,
+        [],
     )
 end
+
+
+function set_sources!(simulation::Simulation)
+    for source in simulation.sources
+        direction_index_search = findall(x -> x == source.direction, simulation.directions)
+        if isempty(direction_index_search)
+            ArgumentError(source.direction, "direction does not exist")
+        end
+        @show direction_index = direction_index_search[1]
+        @show simulation.velocity_distribution[source.ranges..., direction_index] .= source.speed
+    end
+end
+
 
 function get_speeds(simulation::Simulation2D)
     velocities = (
@@ -526,7 +551,7 @@ end
 function update!(simulation::Simulation2D)
     set_zou_he_boundaries!(simulation)
 
-    simulation.velocity_distribution[2, :, 2] .= 2
+    set_sources!(simulation)
 
     velocities_in_objects = get_velocities_in_objects(simulation)
 
@@ -548,7 +573,7 @@ end
 function update!(simulation::Simulation3D)
     set_zou_he_boundaries!(simulation)
 
-    simulation.velocity_distribution[5, :, :, 2] .= 2
+    set_sources!(simulation)
 
     velocities_in_objects = get_velocities_in_objects(simulation)
 
@@ -742,7 +767,7 @@ end
 function multithreaded_update!(simulation::Simulation2D)
     set_zou_he_boundaries!(simulation)
 
-    simulation.velocity_distribution[2, :, 2] .= 2
+    set_sources!(simulation)
 
     velocities_in_objects = get_velocities_in_objects(simulation)
 
@@ -776,7 +801,7 @@ end
 function multithreaded_update!(simulation::Simulation3D)
     set_zou_he_boundaries!(simulation)
 
-    simulation.velocity_distribution[5, :, :, 2] .= 4
+    set_sources!(simulation)
 
     velocities_in_objects = get_velocities_in_objects(simulation)
 

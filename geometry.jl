@@ -121,3 +121,19 @@ function add_point_cloud(
 
     return
 end
+
+
+function add_source!(
+    simulation::Simulation,
+    ranges,
+    direction,
+    speed,
+)
+    dimensions = length(ranges)
+    source = Source{dimensions}(
+        ranges,
+        direction,
+        speed,
+    )
+    push!(simulation.sources, source)
+end
