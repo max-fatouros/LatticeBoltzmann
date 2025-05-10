@@ -14,7 +14,7 @@ function plot_speeds(
     fig = nothing
     if isnothing(ax)
         fig = Figure()
-        ax = Axis(fig[1, 1])
+        ax = CairoMakie.Axis(fig[1, 1], aspect=DataAspect())
     end
 
     speeds = @lift(get_speeds($simulation))
@@ -72,7 +72,7 @@ function plot_objects(
     fig = nothing
     if isnothing(ax)
         fig = Figure()
-        ax = Axis(fig[1, 1]; aspect=DataAspect())
+        ax = CairoMakie.Axis(fig[1, 1]; aspect=DataAspect())
     end
     CairoMakie.image!(
         ax,
@@ -120,7 +120,7 @@ function animate_speeds!(
     sim = Observable(simulation)
     ax = nothing
     if typeof(simulation) <: Simulation2D
-        ax = Axis(fig[1, 1]; aspect=DataAspect())
+        ax = CairoMakie.Axis(fig[1, 1]; aspect=DataAspect())
     elseif typeof(simulation) <: Simulation3D
         ax = Axis3(fig[1, 1]; aspect=:data)
     end
@@ -178,7 +178,7 @@ function animate_speeds_live!(
 
     ax = nothing
     if typeof(simulation) <: Simulation2D
-        ax = Axis(fig[1, 1]; aspect=DataAspect())
+        ax = CairoMakie.Axis(fig[1, 1]; aspect=DataAspect())
     elseif typeof(simulation) <: Simulation3D
         ax = Axis3(fig[1, 1]; aspect=:data)
     end
