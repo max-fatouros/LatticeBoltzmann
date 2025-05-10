@@ -93,7 +93,9 @@ function add_point_cloud(
     point_cloud = read_point_cloud(filename)
 
     # normalize
-    max_point_cloud_length = maximum(point_cloud)
+    max_point_cloud = maximum(point_cloud, dims=1)
+    min_point_cloud = minimum(point_cloud, dims=1)
+    max_point_cloud_length = maximum(abs.(max_point_cloud - min_point_cloud))
     point_cloud = (side_length / max_point_cloud_length) * point_cloud
 
     # rotate
