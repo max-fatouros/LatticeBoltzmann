@@ -20,9 +20,16 @@ Range = Union{Int, UnitRange, Colon}
 
 struct Source{N}
     ranges::SVector{N, Range}
-    direction::SVector{N, Int8}
+    dimension::Int8
     speed::Float64
 end 
+
+
+# to avoid making the Simulation struct mutable
+mutable struct Parameters
+    characteristic_time::Float64
+    time_steps::Int
+end
 
 struct Simulation{A,B,C}
     velocity_distribution::Array{Float64,B}
@@ -33,11 +40,10 @@ struct Simulation{A,B,C}
     directions::SVector{C,SVector{A,Int8}}
     weights::SVector{C,Float64}
     lattice_speed_squared::Float64
-    characteristic_time::Float64
-    time_steps::Int
     delta_t::Float64
     object_mask::Array{Bool,A}
     sources::Vector{Source{A}}
+    parameters::Parameters
 end
 
 function Simulation{dimensions,directions}() where {dimensions,directions}
@@ -140,11 +146,13 @@ function Simulation2DQ9(
         directions,
         weights,
         lattice_speed_squared,
-        characteristic_time,
-        time_steps,
         delta_t,
         object_mask,
-        []
+        [],
+        Parameters(
+            characteristic_time,
+            time_steps,
+        ),
     )
 end
 
@@ -507,7 +515,7 @@ function collide!(simulation::Simulation)
     #! format: off
     @. simulation.velocity_distribution = (
         simulation.velocity_distribution
-        + (simulation.delta_t / simulation.characteristic_time)
+        + (simulation.delta_t / simulation.parameters.characteristic_time)
         * (simulation.equilibrium_distribution - simulation.velocity_distribution)
     )
     #! format: on
@@ -745,7 +753,7 @@ end
     #! format: off
     @. simulation.velocity_distribution[:, chunk_start:chunk_end, :] = (
         simulation.velocity_distribution[:, chunk_start:chunk_end, :]
-        + (simulation.delta_t / simulation.characteristic_time)
+        + (simulation.delta_t / simulation.parameters.characteristic_time)
         * (
             simulation.equilibrium_distribution[:, chunk_start:chunk_end, :]
             - simulation.velocity_distribution[:, chunk_start:chunk_end, :])
@@ -758,7 +766,7 @@ end
     #! format: off
     @. simulation.velocity_distribution[:, :, chunk_start:chunk_end, :] = (
         simulation.velocity_distribution[:, :, chunk_start:chunk_end, :]
-        + (simulation.delta_t / simulation.characteristic_time)
+        + (simulation.delta_t / simulation.parameters.characteristic_time)
         * (
             simulation.equilibrium_distribution[:, :, chunk_start:chunk_end, :]
             - simulation.velocity_distribution[:, :, chunk_start:chunk_end, :])
@@ -844,7 +852,7 @@ function run!(
 )
     prog = something(
         prog,
-        Progress(simulation.time_steps),
+        Progress(simulation.parameters.time_steps),
     )
     simulations::Vector{Simulation} = []
 
@@ -854,7 +862,7 @@ function run!(
         step! = multithreaded_update!
     end
 
-    for (i, _) ∈ enumerate(1:simulation.time_steps)
+    for (i, _) ∈ enumerate(1:simulation.parameters.time_steps)
         next!(prog)
         step!(simulation)
         if i % save_every == 0

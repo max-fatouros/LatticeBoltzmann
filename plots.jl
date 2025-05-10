@@ -136,7 +136,7 @@ function animate_speeds!(
     record(
         fig,
         filename,
-        1:(simulation.time_steps÷100),
+        1:(simulation.parameters.time_steps÷100),
     ) do t
         @show t
         for _ ∈ 1:100
@@ -194,9 +194,9 @@ function animate_speeds_live!(
     )
 
     display(fig)
-    for i ∈ 1:simulation.time_steps
         multithreaded_update!(sim[])
         resize_to_layout!(fig)
+    for i ∈ 1:simulation.parameters.time_steps
         if (i % show_every) == 0
             notify(sim)
             @info "frame $i"
