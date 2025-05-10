@@ -1,5 +1,6 @@
-
 using ProgressMeter
+using Images
+using TiffImages
 
 function add_sphere!(
     simulation::Simulation;
@@ -58,6 +59,20 @@ function read_point_cloud(filename)
     return transpose(hcat(point_cloud...))
 end
 
+
+
+function rotation_matrix(angle)
+    # https://en.wikipedia.org/wiki/Rotation_matrix#General_3D_rotations
+    #!format: off
+    return [
+        cos(angle) -sin(angle)
+        sin(angle) cos(angle)
+    ]
+    #!format: on
+
+    return x_matrix * y_matrix * z_matrix
+end
+
 function rotation_matrix(x_angle, y_angle, z_angle)
     # https://en.wikipedia.org/wiki/Rotation_matrix#General_3D_rotations
     #!format: off
@@ -84,13 +99,19 @@ function rotation_matrix(x_angle, y_angle, z_angle)
 end
 
 function add_point_cloud(
-    simulation3D,
+    simulation,
     filename;
-    position=(0,0,0),
-    rotation=(0,0,0),
+    position=nothing,
+    rotation=nothing,
     side_length=10,
 )
-    point_cloud = read_point_cloud(filename)
+    point_cloud = nothing
+    if occursin(".xyz", filename)
+        point_cloud = read_point_cloud(filename)
+    elseif occursin(".tiff", filename)
+        point_cloud = tiff_to_point_cloud(filename)
+    end
+
 
     # normalize
     max_point_cloud = maximum(point_cloud, dims=1)
@@ -98,13 +119,17 @@ function add_point_cloud(
     max_point_cloud_length = maximum(abs.(max_point_cloud - min_point_cloud))
     point_cloud = (side_length / max_point_cloud_length) * point_cloud
 
-    # rotate
-    point_cloud *= rotation_matrix(rotation...)
+    if !isnothing(rotation)
+        # rotate
+        point_cloud *= rotation_matrix(rotation...)
+    end
 
-    # shift
-    point_cloud_means = mean(point_cloud; dims=1)
-    point_cloud .-= point_cloud_means
-    point_cloud .+= collect(position)'
+    if !isnothing(position)
+        # shift
+        point_cloud_means = mean(point_cloud; dims=1)
+        point_cloud .-= point_cloud_means
+        point_cloud .+= collect(position)'
+    end
 
     # discretize
     discretized_point_cloud = round.(Int, point_cloud)
@@ -121,6 +146,31 @@ function add_point_cloud(
 
     return
 end
+
+
+function tiff_to_point_cloud(filename)
+    img = TiffImages.load(filename)
+
+    img_gray = Gray.(img)
+
+    # img_bool = round.(Bool, img_gray)
+    img_gray[img_gray .< 0.9] .= 0
+    img_gray[img_gray .>= 0.9] .= 1
+    img_bool = Bool.(img_gray)
+    img_bool = .!img_bool
+
+    points = []
+    for index in CartesianIndices(img_bool)
+        if img_bool[index]
+            push!(points, collect(Tuple(index)))
+        end
+    end
+
+    points = transpose(hcat(points...))
+    points = points / maximum(points)
+    return points
+end
+
 
 
 function add_source!(
