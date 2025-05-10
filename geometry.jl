@@ -84,11 +84,11 @@ function rotation_matrix(x_angle, y_angle, z_angle)
 end
 
 function add_point_cloud(
-    simulation3D;
-    filename,
-    position,
-    rotation,
-    side_length,
+    simulation3D,
+    filename;
+    position=(0,0,0),
+    rotation=(0,0,0),
+    side_length=10,
 )
     point_cloud = read_point_cloud(filename)
 
