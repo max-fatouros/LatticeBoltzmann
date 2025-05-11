@@ -14,12 +14,25 @@ function plot_speeds(
     fig = nothing
     if isnothing(ax)
         fig = Figure()
-        ax = CairoMakie.Axis(fig[1, 1]; aspect=DataAspect())
+        ax = CairoMakie.Axis(
+            fig[1, 1];
+            aspect=DataAspect(),
+            xgridvisible=false,
+            ygridvisible=false,
+        )
     end
 
-    speeds = @lift(get_speeds($simulation))
+    speeds = @lift begin
+        sim = $simulation
+        speeds = get_speeds(sim)
+        speeds[sim.object_mask] .= NaN
+        return speeds
+    end
 
-    defaults = (; colormap=:viridis)
+    defaults = (;
+        colormap=:viridis,
+        nan_color=:black,
+    )
     kwargs = merge(defaults, kwargs)
 
     CairoMakie.image!(
@@ -27,7 +40,6 @@ function plot_speeds(
         speeds;
         kwargs...,
     )
-
     return fig
 end
 
@@ -42,9 +54,18 @@ function plot_speeds(
         ax = Axis3(fig[1, 1]; aspect=:data)
     end
 
-    speeds = @lift(get_speeds($simulation))
+    speeds = @lift begin
+        sim = $simulation
+        speeds = get_speeds(sim)
+        speeds[sim.object_mask] .= NaN
+        return speeds
+    end
 
-    defaults = (; algorithm=:mip, colormap=:viridis)
+    defaults = (;
+        algorithm=:mip,
+        colormap=:viridis,
+        nan_color=:black,
+    )
     kwargs = merge(defaults, kwargs)
 
     GLMakie.volume!(
