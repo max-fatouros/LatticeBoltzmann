@@ -170,13 +170,13 @@ end
 function add_source!(
     simulation::Simulation,
     ranges,
-    direction,
+    dimension,
     speed,
 )
     dimensions = length(ranges)
     source = Source{dimensions}(
         ranges,
-        direction,
+        dimension,
         speed,
     )
     return push!(simulation.sources, source)
