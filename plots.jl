@@ -115,6 +115,8 @@ end
 function animate_speeds!(
     simulation::Simulation;
     filename="animation.mp4",
+    ax=nothing,
+    kwargs...,
 )
     fig = Figure()
     sim = Observable(simulation)
@@ -129,6 +131,7 @@ function animate_speeds!(
         plot_speeds(
             $sim;
             ax=ax,
+            kwargs...,
         )
     )
     resize_to_layout!(fig)
