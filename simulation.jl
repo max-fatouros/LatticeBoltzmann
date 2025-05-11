@@ -887,8 +887,10 @@ function run!(
 
     if Threads.nthreads == 1
         step! = update!
+        @info "running single threaded updates"
     else
         step! = multithreaded_update!
+        @info "running multi-threaded updates"
     end
 
     for (i, _) ∈ enumerate(1:simulation.parameters.time_steps)
