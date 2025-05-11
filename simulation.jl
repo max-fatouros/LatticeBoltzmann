@@ -308,7 +308,7 @@ end
 
 function get_reynolds_number(
     simulation::Simulation;
-    dimension=1,
+    dimension=2,
 )
     if length(simulation.sources) > 1
         throw(ErrorException("Stream direction ambiguous for multiple sources"))
