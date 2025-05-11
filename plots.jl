@@ -14,7 +14,7 @@ function plot_speeds(
     fig = nothing
     if isnothing(ax)
         fig = Figure()
-        ax = CairoMakie.Axis(fig[1, 1], aspect=DataAspect())
+        ax = CairoMakie.Axis(fig[1, 1]; aspect=DataAspect())
     end
 
     speeds = @lift(get_speeds($simulation))
@@ -197,8 +197,8 @@ function animate_speeds_live!(
     )
 
     display(fig)
-        multithreaded_update!(sim[])
-        resize_to_layout!(fig)
+    multithreaded_update!(sim[])
+    resize_to_layout!(fig)
     for i ∈ 1:simulation.parameters.time_steps
         if (i % show_every) == 0
             notify(sim)

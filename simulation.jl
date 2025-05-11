@@ -11,15 +11,13 @@ end
     AppleAccelerate.@replaceBase(^, /)
 end
 
-
-Range = Union{Int, UnitRange, Colon}
+Range = Union{Int,UnitRange,Colon}
 
 struct Source{N}
-    ranges::SVector{N, Range}
+    ranges::SVector{N,Range}
     dimension::Int8
     speed::Float64
-end 
-
+end
 
 # to avoid making the Simulation struct mutable
 mutable struct Parameters
@@ -107,12 +105,12 @@ function Simulation2DQ9(
     ]
 
     # defined such that lattice_speed_squared == 1
-    delta_t = sqrt(1/3)
+    delta_t = sqrt(1 / 3)
 
     # TODO: compute this properly later
     # delta_x = 1 / divisions[1]
     delta_x = 1
-    lattice_speed_squared = (1/3) * (delta_x^2 / delta_t^2)
+    lattice_speed_squared = (1 / 3) * (delta_x^2 / delta_t^2)
     # lattice_speed_squared = 1
 
     characteristic_time = 0.6
@@ -258,8 +256,6 @@ function Simulation3DQ15(
     )
 end
 
-
-
 function reset!(simulation::Simulation2DQ9)
     initial_velocity_distribution = ones(
         Float64,
@@ -267,11 +263,12 @@ function reset!(simulation::Simulation2DQ9)
         9,
     )
 
-    random_velocity_distribution = 1e-2 * randn(
-        Float64,
-        size(simulation.mass_densities)...,
-        9,
-    )
+    random_velocity_distribution =
+        1e-2 * randn(
+            Float64,
+            size(simulation.mass_densities)...,
+            9,
+        )
 
     equilibrium_distribution = zeros(
         Float64,
@@ -294,17 +291,16 @@ function reset!(simulation::Simulation2DQ9)
     simulation.velocity_distribution .= velocity_distribution
     simulation.mass_densities .= mass_densities
     simulation.momentum_densities .= momentum_densities
-    return 
+    return
 end
-
 
 function get_viscosity(simulation::Simulation)
     return (
-            (2 * simulation.parameters.characteristic_time - 1)
-            / 6
-    ) * simulation.lattice_speed_squared * simulation.delta_t
+               (2 * simulation.parameters.characteristic_time - 1)
+               /
+               6
+           ) * simulation.lattice_speed_squared * simulation.delta_t
 end
-
 
 function get_reynolds_number(
     simulation::Simulation;
@@ -318,24 +314,22 @@ function get_reynolds_number(
         throw(ErrorException("Simulation must have one source to define Reynolds number"))
     end
 
-
     return (
         (
             simulation.sources[1].speed
-            * size(simulation.mass_densities, dimension)
+            *
+            size(simulation.mass_densities, dimension)
         )
-        / get_viscosity(simulation)
+        /
+        get_viscosity(simulation)
     )
-
 end
 
-
 function set_sources!(simulation::Simulation)
-    for source in simulation.sources
+    for source ∈ simulation.sources
         @. simulation.momentum_densities[source.ranges..., source.dimension] .= source.speed
     end
 end
-
 
 function get_speeds(simulation::Simulation2D)
     velocities = (
@@ -617,7 +611,6 @@ end
 function update!(simulation::Simulation2D)
     set_zou_he_boundaries!(simulation)
 
-
     velocities_in_objects = get_velocities_in_objects(simulation)
 
     compute_mass_densities!(simulation)
@@ -638,8 +631,6 @@ end
 
 function update!(simulation::Simulation3D)
     set_zou_he_boundaries!(simulation)
-
-
 
     velocities_in_objects = get_velocities_in_objects(simulation)
 
@@ -833,7 +824,6 @@ end
 function multithreaded_update!(simulation::Simulation2D)
     set_zou_he_boundaries!(simulation)
 
-
     velocities_in_objects = get_velocities_in_objects(simulation)
 
     threads = Threads.nthreads()
@@ -866,7 +856,6 @@ end
 
 function multithreaded_update!(simulation::Simulation3D)
     set_zou_he_boundaries!(simulation)
-
 
     velocities_in_objects = get_velocities_in_objects(simulation)
 

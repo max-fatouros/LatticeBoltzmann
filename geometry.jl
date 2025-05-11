@@ -59,8 +59,6 @@ function read_point_cloud(filename)
     return transpose(hcat(point_cloud...))
 end
 
-
-
 function rotation_matrix(angle)
     # https://en.wikipedia.org/wiki/Rotation_matrix#General_3D_rotations
     #!format: off
@@ -112,10 +110,9 @@ function add_point_cloud(
         point_cloud = tiff_to_point_cloud(filename)
     end
 
-
     # normalize
-    max_point_cloud = maximum(point_cloud, dims=1)
-    min_point_cloud = minimum(point_cloud, dims=1)
+    max_point_cloud = maximum(point_cloud; dims=1)
+    min_point_cloud = minimum(point_cloud; dims=1)
     max_point_cloud_length = maximum(abs.(max_point_cloud - min_point_cloud))
     point_cloud = (side_length / max_point_cloud_length) * point_cloud
 
@@ -147,20 +144,19 @@ function add_point_cloud(
     return
 end
 
-
 function tiff_to_point_cloud(filename)
     img = TiffImages.load(filename)
 
     img_gray = Gray.(img)
 
     # img_bool = round.(Bool, img_gray)
-    img_gray[img_gray .< 0.9] .= 0
-    img_gray[img_gray .>= 0.9] .= 1
+    img_gray[img_gray.<0.9] .= 0
+    img_gray[img_gray.>=0.9] .= 1
     img_bool = Bool.(img_gray)
     img_bool = .!img_bool
 
     points = []
-    for index in CartesianIndices(img_bool)
+    for index ∈ CartesianIndices(img_bool)
         if img_bool[index]
             push!(points, collect(Tuple(index)))
         end
@@ -170,8 +166,6 @@ function tiff_to_point_cloud(filename)
     points = points / maximum(points)
     return points
 end
-
-
 
 function add_source!(
     simulation::Simulation,
@@ -185,5 +179,5 @@ function add_source!(
         direction,
         speed,
     )
-    push!(simulation.sources, source)
+    return push!(simulation.sources, source)
 end
