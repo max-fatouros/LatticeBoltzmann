@@ -298,6 +298,38 @@ function reset!(simulation::Simulation2DQ9)
 end
 
 
+function get_viscosity(simulation::Simulation)
+    return (
+            (2 * simulation.parameters.characteristic_time - 1)
+            / 6
+    ) * simulation.lattice_speed_squared * simulation.delta_t
+end
+
+
+function get_reynolds_number(
+    simulation::Simulation;
+    dimension=1,
+)
+    if length(simulation.sources) > 1
+        throw(ErrorException("Stream direction ambiguous for multiple sources"))
+    end
+
+    if length(simulation.sources) == 0
+        throw(ErrorException("Simulation must have one source to define Reynolds number"))
+    end
+
+
+    return (
+        (
+            simulation.sources[1].speed
+            * size(simulation.mass_densities, dimension)
+        )
+        / get_viscosity(simulation)
+    )
+
+end
+
+
 function set_sources!(simulation::Simulation)
     for source in simulation.sources
         direction_index_search = findall(x -> x == source.direction, simulation.directions)
