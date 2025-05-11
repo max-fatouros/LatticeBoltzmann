@@ -261,7 +261,7 @@ function animate_live!(
     display(fig)
     resize_to_layout!(fig)
     for i ∈ 1:simulation.parameters.time_steps
-        multithreaded_update!(sim[])
+        update!(sim[])
         if (i % show_every) == 0
             notify(sim)
             @info "frame $i"

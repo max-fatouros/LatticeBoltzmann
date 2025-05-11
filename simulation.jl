@@ -291,6 +291,9 @@ function reset!(simulation::Simulation2DQ9)
     simulation.velocity_distribution .= velocity_distribution
     simulation.mass_densities .= mass_densities
     simulation.momentum_densities .= momentum_densities
+
+    @info "reset"
+    @info "threads: $(Threads.nthreads())"
     return
 end
 
@@ -594,7 +597,7 @@ function stream!(simulation::Simulation3D)
     return
 end
 
-function update!(simulation::Simulation2D)
+function singlethreaded_update!(simulation::Simulation2D)
     set_no_bounce_boundaries!(simulation)
 
     velocities_in_objects = get_velocities_in_objects(simulation)
@@ -615,7 +618,7 @@ function update!(simulation::Simulation2D)
     return
 end
 
-function update!(simulation::Simulation3D)
+function singlethreaded_update!(simulation::Simulation3D)
     set_no_bounce_boundaries!(simulation)
 
     velocities_in_objects = get_velocities_in_objects(simulation)
@@ -874,6 +877,19 @@ function multithreaded_update!(simulation::Simulation3D)
     return
 end
 
+function update!(
+    simulation::Simulation,
+)
+    if Threads.nthreads() == 1
+        step! = singlethreaded_update!
+    else
+        step! = multithreaded_update!
+    end
+
+    step!(simulation)
+    return
+end
+
 function run!(
     simulation::Simulation;
     prog=nothing,
@@ -885,17 +901,9 @@ function run!(
     )
     simulations::Vector{Simulation} = []
 
-    if Threads.nthreads == 1
-        step! = update!
-        @info "running single threaded updates"
-    else
-        step! = multithreaded_update!
-        @info "running multi-threaded updates"
-    end
-
     for (i, _) ∈ enumerate(1:simulation.parameters.time_steps)
         next!(prog)
-        step!(simulation)
+        update!(simulation)
         if i % save_every == 0
             push!(simulations, deepcopy(simulation))
         end
