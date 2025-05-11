@@ -234,8 +234,9 @@ function animate_speeds_with_slider(simulations::Vector{Simulation})
     return
 end
 
-function animate_speeds_live!(
-    simulation;
+function animate_live!(
+    simulation,
+    plot_function;
     show_every=100,
     kwargs...,
 )
@@ -249,45 +250,7 @@ function animate_speeds_live!(
         ax = Axis3(fig[1, 1]; aspect=:data)
     end
 
-    # plot_objects(
-    #     sim;
-    #     ax=ax,
-    # )
-    plot_speeds(
-        sim;
-        ax=ax,
-        kwargs...,
-    )
-
-    display(fig)
-    resize_to_layout!(fig)
-    for i ∈ 1:simulation.parameters.time_steps
-        multithreaded_update!(sim[])
-        if (i % show_every) == 0
-            notify(sim)
-            @info "frame $i"
-        end
-        sleep(1e-3)
-    end
-    return fig
-end
-
-function animate_velocities_live!(
-    simulation;
-    show_every=100,
-    kwargs...,
-)
-    fig = Figure()
-    sim = Observable(simulation)
-
-    ax = nothing
-    if typeof(simulation) <: Simulation2D
-        ax = CairoMakie.Axis(fig[1, 1]; aspect=DataAspect())
-    elseif typeof(simulation) <: Simulation3D
-        ax = Axis3(fig[1, 1]; aspect=:data)
-    end
-
-    plot_velocities(
+    plot_function(
         sim;
         ax=ax,
         kwargs...,
