@@ -332,12 +332,7 @@ end
 
 function set_sources!(simulation::Simulation)
     for source in simulation.sources
-        direction_index_search = findall(x -> x == source.direction, simulation.directions)
-        if isempty(direction_index_search)
-            ArgumentError(source.direction, "direction does not exist")
-        end
-        direction_index = direction_index_search[1]
-        simulation.velocity_distribution[source.ranges..., direction_index] .= source.speed
+        @. simulation.momentum_densities[source.ranges..., source.dimension] .= source.speed
     end
 end
 
@@ -622,12 +617,12 @@ end
 function update!(simulation::Simulation2D)
     set_zou_he_boundaries!(simulation)
 
-    set_sources!(simulation)
 
     velocities_in_objects = get_velocities_in_objects(simulation)
 
     compute_mass_densities!(simulation)
     compute_momentum_densities!(simulation)
+    set_sources!(simulation)
 
     compute_equilibrium_distribution!(simulation)
 
@@ -644,13 +639,13 @@ end
 function update!(simulation::Simulation3D)
     set_zou_he_boundaries!(simulation)
 
-    set_sources!(simulation)
+
 
     velocities_in_objects = get_velocities_in_objects(simulation)
 
     compute_mass_densities!(simulation)
     compute_momentum_densities!(simulation)
-
+    set_sources!(simulation)
     compute_equilibrium_distribution!(simulation)
 
     collide!(simulation)
@@ -838,7 +833,6 @@ end
 function multithreaded_update!(simulation::Simulation2D)
     set_zou_he_boundaries!(simulation)
 
-    set_sources!(simulation)
 
     velocities_in_objects = get_velocities_in_objects(simulation)
 
@@ -856,6 +850,7 @@ function multithreaded_update!(simulation::Simulation2D)
 
         compute_mass_densities!(simulation, chunk_start, chunk_end)
         compute_momentum_densities!(simulation, chunk_start, chunk_end)
+        set_sources!(simulation)
         compute_equilibrium_distribution!(simulation, chunk_start, chunk_end)
 
         collide!(simulation, chunk_start, chunk_end)
@@ -872,7 +867,6 @@ end
 function multithreaded_update!(simulation::Simulation3D)
     set_zou_he_boundaries!(simulation)
 
-    set_sources!(simulation)
 
     velocities_in_objects = get_velocities_in_objects(simulation)
 
@@ -891,6 +885,7 @@ function multithreaded_update!(simulation::Simulation3D)
         # https://github.com/pmocz/latticeboltzmann-python/blob/main/latticeboltzmann.py
         compute_mass_densities!(simulation, chunk_start, chunk_end)
         compute_momentum_densities!(simulation, chunk_start, chunk_end)
+        set_sources!(simulation)
         compute_equilibrium_distribution!(simulation, chunk_start, chunk_end)
 
         collide!(simulation, chunk_start, chunk_end)
