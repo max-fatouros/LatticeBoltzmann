@@ -60,13 +60,7 @@ function Simulation2DQ9(
     time_steps;
     divisions=(400, 100),
 )
-    initial_velocity_distribution = ones(
-        Float64,
-        divisions...,
-        9,
-    )
-
-    random_velocity_distribution = 1e-2 * randn(
+    velocity_distribution = ones(
         Float64,
         divisions...,
         9,
@@ -77,8 +71,6 @@ function Simulation2DQ9(
         divisions...,
         9,
     )
-
-    velocity_distribution = initial_velocity_distribution + random_velocity_distribution
 
     mass_densities = zeros(
         Float64,
@@ -133,7 +125,7 @@ function Simulation2DQ9(
     # object_mask[1:end, 1] .= true
     # object_mask[1:end, end] .= true
 
-    return Simulation2DQ9(
+    simulation = Simulation2DQ9(
         velocity_distribution,
         similar(velocity_distribution),
         equilibrium_distribution,
@@ -150,6 +142,9 @@ function Simulation2DQ9(
             time_steps,
         ),
     )
+
+    reset!(simulation)
+    return simulation
 end
 
 function Simulation3DQ15(
@@ -264,7 +259,42 @@ end
 
 
 
+function reset!(simulation::Simulation2DQ9)
+    initial_velocity_distribution = ones(
+        Float64,
+        size(simulation.mass_densities)...,
+        9,
+    )
 
+    random_velocity_distribution = 1e-2 * randn(
+        Float64,
+        size(simulation.mass_densities)...,
+        9,
+    )
+
+    equilibrium_distribution = zeros(
+        Float64,
+        size(simulation.mass_densities)...,
+        9,
+    )
+
+    velocity_distribution = initial_velocity_distribution + random_velocity_distribution
+
+    mass_densities = zeros(
+        Float64,
+        size(simulation.mass_densities)...,
+    )
+    momentum_densities = zeros(
+        Float64,
+        size(simulation.mass_densities)...,
+        2,
+    )
+
+    simulation.velocity_distribution .= velocity_distribution
+    simulation.mass_densities .= mass_densities
+    simulation.momentum_densities .= momentum_densities
+    return 
+end
 
 
 function set_sources!(simulation::Simulation)
