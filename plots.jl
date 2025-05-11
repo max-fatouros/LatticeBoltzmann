@@ -64,6 +64,48 @@ function plot_speeds(
     return plot_speeds(Observable(simulation); ax=ax, kwargs...)
 end
 
+function plot_velocities(
+    simulation::Observable{<:Simulation2D};
+    ax=nothing,
+    kwargs...,
+)
+    fig = nothing
+    if isnothing(ax)
+        fig = Figure()
+        ax = CairoMakie.Axis(fig[1, 1]; aspect=DataAspect())
+    end
+
+    # speeds = @lift(get_speeds($simulation))
+
+    defaults = (; colormap=:viridis)
+    kwargs = merge(defaults, kwargs)
+
+    # f(x, simulation) = Point2f(simulation.momentum_densities[round.(Int, x)..., :])
+    # f(x) = @lift(f(x, $simulation))
+    field = @lift begin
+        sim = $simulation
+        (x, y) -> Point2f(sim.momentum_densities[round(Int, x), round(Int, y), :])
+    end
+
+    CairoMakie.streamplot!(
+        ax,
+        field,
+        1:400,
+        1:100;
+        kwargs...,
+    )
+
+    return fig
+end
+
+function plot_velocities(
+    simulation::Simulation;
+    ax=nothing,
+    kwargs...,
+)
+    return plot_velocities(Observable(simulation); ax=ax, kwargs...)
+end
+
 function plot_objects(
     simulation::Observable{<:Simulation2D};
     ax=nothing,
@@ -197,9 +239,43 @@ function animate_speeds_live!(
     )
 
     display(fig)
-    multithreaded_update!(sim[])
     resize_to_layout!(fig)
     for i ∈ 1:simulation.parameters.time_steps
+        multithreaded_update!(sim[])
+        if (i % show_every) == 0
+            notify(sim)
+            @info "frame $i"
+        end
+        sleep(1e-3)
+    end
+    return fig
+end
+
+function animate_velocities_live!(
+    simulation;
+    show_every=100,
+    kwargs...,
+)
+    fig = Figure()
+    sim = Observable(simulation)
+
+    ax = nothing
+    if typeof(simulation) <: Simulation2D
+        ax = CairoMakie.Axis(fig[1, 1]; aspect=DataAspect())
+    elseif typeof(simulation) <: Simulation3D
+        ax = Axis3(fig[1, 1]; aspect=:data)
+    end
+
+    plot_velocities(
+        sim;
+        ax=ax,
+        kwargs...,
+    )
+
+    display(fig)
+    resize_to_layout!(fig)
+    for i ∈ 1:simulation.parameters.time_steps
+        multithreaded_update!(sim[])
         if (i % show_every) == 0
             notify(sim)
             @info "frame $i"
