@@ -38,11 +38,88 @@
 
 \section{Introduction}
 
-The Lattice Boltzman Method (LBM) is a fluid simulation method
+The Lattice Boltzman Method (LBM) is fluid simulation method.
+It is a discretization of the Boltzman equation.
 
-\cite{sukop_lattice_2006}
+The LBM an evolution of Lattice Gas Automata~\cite{sukop_lattice_2006},
 
 
+\subsection{Lattice Boltzmann}
+The phase-space density function is defined as $f(\mathbf x, \mathbf p, t)$.
+The probability of finding a particle with position $\mathbf x_{0}$, momentum $\mathbf p_{0}$, at time $t_{0}$, such that
+\[
+  (\mathbf x, \mathbf p, t) < (\mathbf x_{0}, \mathbf p_{0}, t_{0}) < (\mathbf x + \delta \mathbf x, \mathbf p + \delta \mathbf p, t + \delta t)
+\]
+
+is given by $f_{i}(\mathbf x,\mathbf p,t)\delta \mathbf x \delta \mathbf p \delta t$.
+
+The LBM method discretizes the system to get $f(\mathbf x, \mathbf p_{i}, t)$, where $\mathbf x$ and $t$ are now defined on a lattice, and $\mathbf p_{i}$ is a set of $M$ discrete momenta that the particles can have.
+
+
+The unit vectors in the direction of $\mathbf p_{i}$ are defined as $\mathbf e_{i}$.
+
+To go from individual discrete quantities, to continuous macroscopic observables, we take the moments of the phase-space distribution
+\[
+  \rho(\mathbf x, t) = \sum_{i} f(\mathbf x, \mathbf p_{i}, t)
+\]
+
+\[
+  \rho(\mathbf x, t)  \mathbf u(\mathbf x, t) = \sum_{i} \mathbf e_{i} f(\mathbf x, \mathbf p_{i}, t)
+\]
+
+Where $\rho$ is the mass density and $\mathbf u$ is the velocity of the ensemble of particles at a lattice point.
+
+
+
+
+
+
+
+
+The number of spatial dimensions $N$ and the number of discrete momenta $M$ are often characterized by a naming scheme as DNQM. Therefore, a system in 2 dimensions with 9 discrete momenta is denoted as D2Q9.
+
+
+
+\subsection{Boundary Conditions}
+
+The possible boundary conditions we consider in our model are
+\begin{enumerate}
+  \item periodic
+  \item bounce-back
+  \item no-bounce
+\end{enumerate}
+
+These boundary conditions are defined below.
+
+The edges of the lattice can have either periodic or no-bounce boundary conditions, the objects inserted in the simulation always have bounce-back boundary conditions.
+
+\subsubsection{Periodic}
+\subsubsection{Bounce-Back}
+\subsubsection{No-Bounce}
+
+
+\section{Method}
+The code for this simulation was written in Julia.
+The D2Q9 and D3Q15 methods were implemented.
+
+\subsubsection{D2Q9 Model}
+The D2Q9 models defines the unit vectors $\mathbf e_{i}$ as
+\todo[inline]{add figure}
+
+The weights associated with these directions are~\cite{bottcher_computational_2021}
+\[
+  w_{i} =
+    \begin{cases}
+      4/9 & i = 1 \\
+      1/9 & i \in 2,\ldots,5 \\
+      1/36 & i \in 6,\ldots,9 \\
+   \end{cases}
+\]
+\subsubsection{D3Q15 Model}
+
+\section{Results}
+
+\section{Conclusion}
 
 
 \newpage
