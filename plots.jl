@@ -113,7 +113,7 @@ function plot_objects(
 end
 
 function animate_speeds!(
-    simulation::Simulation,
+    simulation::Simulation;
     filename="animation.mp4",
 )
     fig = Figure()
@@ -127,7 +127,7 @@ function animate_speeds!(
 
     @lift(
         plot_speeds(
-            $sim,
+            $sim;
             ax=ax,
         )
     )

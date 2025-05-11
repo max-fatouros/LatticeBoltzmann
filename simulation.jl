@@ -2,10 +2,6 @@ using StaticArrays
 using LinearAlgebra
 using ProgressMeter
 
-# abstract type Simulation end
-# abstract type Simulation2D <: Simulation end
-# abstract type Simulation3D <: Simulation end
-
 # Requires two static conditionals
 # https://discourse.julialang.org/t/is-importing-module-is-allowed-inside-static/28975/2
 @static if Sys.isapple()
