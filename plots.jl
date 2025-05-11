@@ -175,6 +175,7 @@ function plot_objects(
     )
 end
 
+# TODO: pass plot function
 function animate_speeds!(
     simulation::Simulation;
     filename="animation.mp4",
@@ -215,6 +216,7 @@ function animate_speeds!(
     return
 end
 
+# TODO: pass plot function
 function animate_speeds_with_slider(simulations::Vector{Simulation})
     fig = Figure()
     slider = Slider(
