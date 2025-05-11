@@ -1,0 +1,69 @@
+\documentclass[11pt]{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{lipsum}
+\usepackage{parskip}
+
+\setlength{\marginparwidth}{1in}
+\usepackage{todonotes}
+
+\usepackage{hyperref}
+\usepackage[affil-it]{authblk}
+\usepackage{amsmath}
+\usepackage{siunitx}
+\usepackage{subcaption}
+\usepackage{cleveref}
+
+
+
+\urlstyle{same}
+
+
+\hypersetup{
+hidelinks,
+pdfencoding=unicode,
+breaklinks=true
+}
+
+\usepackage[
+	maxbibnames=3,
+	style=phys,
+%	url=true,
+%	doi=true,
+	% dashed=false,
+	citestyle=numeric-comp,
+	backend=biber,
+	% refsegment=chapter,
+	sorting=none,
+	defernumbers=true,
+	backref=true
+]{biblatex}
+
+% Prints url only if doi is not present
+\renewbibmacro*{doi+eprint+url}{%
+    \printfield{doi}%
+    \newunit\newblock%
+    \iftoggle{bbx:eprint}{%
+        \usebibmacro{eprint}%
+    }{}%
+    \newunit\newblock%
+    \iffieldundef{doi}{%
+        \usebibmacro{url+urldate}}%
+        {}%
+    }
+
+
+\usepackage[
+left=3cm,
+right=3cm,
+top=3cm,
+bottom=3cm
+]{geometry}
+
+\usepackage[T1]{fontenc}
+% The following line makes the font Times New Roman.
+% I find that Times New Roman is better for text that is read on a computer screen,
+% while the default font looks fancier, and is better suited for print.
+\usepackage{mathptmx}
+
+
+\graphicspath{ {./media} }
