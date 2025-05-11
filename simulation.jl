@@ -397,45 +397,30 @@ function get_velocities_in_objects(simulation::Simulation3DQ15)
     return velocities_in_objects
 end
 
-function set_zou_he_boundaries!(simulation::Simulation2DQ9)
-    # https://www.youtube.com/watch?v=JFWqCQHg-Hs&t=1032s
-    # Zou He boundary condition
-    simulation.velocity_distribution[end, :, [4, 7, 8]] .= (
-        simulation.velocity_distribution[end-1, :, [4, 7, 8]]
+"""
+# zero acceleration Neumann boundary conditions
+- https://ntrs.nasa.gov/api/citations/20020063595/downloads/20020063595.pdf
+
+"""
+function set_no_bounce_boundaries!(simulation::Simulation) end
+
+function set_no_bounce_boundaries!(simulation::Simulation2DQ9)
+    simulation.velocity_distribution[end, :, :] .= (
+        simulation.velocity_distribution[end-1, :, :]
     )
-    simulation.velocity_distribution[1, :, [2, 6, 9]] = (
-        simulation.velocity_distribution[2, :, [2, 6, 9]]
+    simulation.velocity_distribution[1, :, :] = (
+        simulation.velocity_distribution[2, :, :]
     )
     return
 end
 
-function set_zou_he_boundaries!(simulation::Simulation3DQ15)
-    # https://www.youtube.com/watch?v=JFWqCQHg-Hs&t=1032s
-    # Zou He boundary condition
-    #!format: off
-    simulation.velocity_distribution[
-        end,
-        :,
-        :,
-        [3, 12, 13, 14, 15],
-    ] .= simulation.velocity_distribution[
-        end-1,
-        :,
-        :,
-        [3, 12, 13, 14, 15],
-    ]
-    simulation.velocity_distribution[
-        1,
-        :,
-        :,
-        [2, 8, 9, 10, 11],
-    ] = simulation.velocity_distribution[
-        2,
-        :,
-        :,
-        [2, 8, 9, 10, 11],
-    ]
-    #!format: on
+function set_no_bounce_boundaries!(simulation::Simulation3DQ15)
+    simulation.velocity_distribution[end, :, :, :] .= (
+        simulation.velocity_distribution[end-1, :, :, :]
+    )
+    simulation.velocity_distribution[1, :, :, :] = (
+        simulation.velocity_distribution[2, :, :, :]
+    )
     return
 end
 
@@ -610,7 +595,7 @@ function stream!(simulation::Simulation3D)
 end
 
 function update!(simulation::Simulation2D)
-    set_zou_he_boundaries!(simulation)
+    set_no_bounce_boundaries!(simulation)
 
     velocities_in_objects = get_velocities_in_objects(simulation)
 
@@ -631,7 +616,7 @@ function update!(simulation::Simulation2D)
 end
 
 function update!(simulation::Simulation3D)
-    set_zou_he_boundaries!(simulation)
+    set_no_bounce_boundaries!(simulation)
 
     velocities_in_objects = get_velocities_in_objects(simulation)
 
@@ -823,7 +808,7 @@ end
 end
 
 function multithreaded_update!(simulation::Simulation2D)
-    set_zou_he_boundaries!(simulation)
+    set_no_bounce_boundaries!(simulation)
 
     velocities_in_objects = get_velocities_in_objects(simulation)
 
@@ -856,7 +841,7 @@ function multithreaded_update!(simulation::Simulation2D)
 end
 
 function multithreaded_update!(simulation::Simulation3D)
-    set_zou_he_boundaries!(simulation)
+    set_no_bounce_boundaries!(simulation)
 
     velocities_in_objects = get_velocities_in_objects(simulation)
 
