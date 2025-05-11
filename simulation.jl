@@ -327,7 +327,8 @@ end
 
 function set_sources!(simulation::Simulation)
     for source ∈ simulation.sources
-        @. simulation.momentum_densities[source.ranges..., source.dimension] .= source.speed
+        @. simulation.momentum_densities[source.ranges..., source.dimension] =
+            source.speed * simulation.mass_densities[source.ranges...]
     end
 end
 
