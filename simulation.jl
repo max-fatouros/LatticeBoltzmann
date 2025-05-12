@@ -333,9 +333,7 @@ end
 
 function get_viscosity(simulation::Simulation)
     return (
-               (2 * simulation.parameters.characteristic_time - 1)
-               /
-               6
+               (simulation.parameters.characteristic_time - 0.5)
            ) * simulation.lattice_speed_squared * simulation.delta_t
 end
 
