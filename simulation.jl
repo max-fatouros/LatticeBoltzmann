@@ -150,13 +150,7 @@ function Simulation3DQ15(
     time_steps;
     divisions=(200, 100, 100),
 )
-    initial_velocity_distribution = ones(
-        Float64,
-        divisions...,
-        15,
-    )
-
-    random_velocity_distribution = 1e-2 * randn(
+    velocity_distribution = ones(
         Float64,
         divisions...,
         15,
@@ -167,8 +161,6 @@ function Simulation3DQ15(
         divisions...,
         15,
     )
-
-    velocity_distribution = initial_velocity_distribution + random_velocity_distribution
 
     mass_densities = zeros(
         Float64,
@@ -218,13 +210,14 @@ function Simulation3DQ15(
         1 / 72,
     ]
 
-    # delta_t = 5e-3
-    delta_t = 1
+    # defined such that lattice_speed_squared == 1
+    delta_t = sqrt(1 / 3)
 
     # TODO: compute this properly later
-    delta_x = 1 / divisions[1]
-    # lattice_speed_squared = (1/3) * (delta_x^2 / delta_t^2)
-    lattice_speed_squared = 1
+    # delta_x = 1 / divisions[1]
+    delta_x = 1
+    lattice_speed_squared = (1 / 3) * (delta_x^2 / delta_t^2)
+    # lattice_speed_squared = 1
 
     characteristic_time = 0.6
 
@@ -239,7 +232,7 @@ function Simulation3DQ15(
     # object_mask[:, 1, :] .= true
     # object_mask[:, end, :] .= true
 
-    return Simulation3DQ15(
+    simulation = Simulation3DQ15(
         velocity_distribution,
         similar(velocity_distribution),
         equilibrium_distribution,
@@ -248,12 +241,18 @@ function Simulation3DQ15(
         directions,
         weights,
         lattice_speed_squared,
-        characteristic_time,
-        time_steps,
         delta_t,
         object_mask,
         [],
+        Parameters(
+            characteristic_time,
+            time_steps,
+        ),
     )
+
+    reset!(simulation)
+
+    return simulation
 end
 
 function reset!(simulation::Simulation2DQ9)
@@ -293,6 +292,47 @@ function reset!(simulation::Simulation2DQ9)
     simulation.momentum_densities .= momentum_densities
 
     @info "reset"
+    @info "threads: $(Threads.nthreads())"
+    return
+end
+
+function reset!(simulation::Simulation3DQ15)
+    initial_velocity_distribution = ones(
+        Float64,
+        size(simulation.mass_densities)...,
+        15,
+    )
+
+    random_velocity_distribution =
+        1e-2 * randn(
+            Float64,
+            size(simulation.mass_densities)...,
+            15,
+        )
+
+    equilibrium_distribution = zeros(
+        Float64,
+        size(simulation.mass_densities)...,
+        15,
+    )
+
+    velocity_distribution = initial_velocity_distribution + random_velocity_distribution
+
+    mass_densities = zeros(
+        Float64,
+        size(simulation.mass_densities)...,
+    )
+    momentum_densities = zeros(
+        Float64,
+        size(simulation.mass_densities)...,
+        3,
+    )
+
+    simulation.velocity_distribution .= velocity_distribution
+    simulation.mass_densities .= mass_densities
+    simulation.momentum_densities .= momentum_densities
+
+    @info "reset $(typeof(simulation))"
     @info "threads: $(Threads.nthreads())"
     return
 end
