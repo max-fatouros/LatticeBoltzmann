@@ -31,7 +31,7 @@ struct Simulation{A,B,C}
     equilibrium_distribution::Array{Float64,B}
     mass_densities::Array{Float64,A}
     momentum_densities::Array{Float64,B}
-    directions::SVector{C,SVector{A,Int8}}
+    velocities::SVector{C,SVector{A,Int8}}
     weights::SVector{C,Float64}
     lattice_speed_squared::Float64
     delta_t::Float64
@@ -40,18 +40,18 @@ struct Simulation{A,B,C}
     parameters::Parameters
 end
 
-function Simulation{dimensions,directions}() where {dimensions,directions}
+function Simulation{dimensions,velocities}() where {dimensions,velocities}
     return Simulation{
         dimensions,
         dimensions + 1,
-        directions,
+        velocities,
     }
 end
 
-const SimulationD2{directions} = Simulation{2,3,directions}
+const SimulationD2{velocities} = Simulation{2,3,velocities}
 const SimulationD2Q9 = SimulationD2{9}
 
-const SimulationD3{directions} = Simulation{3,4,directions}
+const SimulationD3{velocities} = Simulation{3,4,velocities}
 const SimulationD3Q15 = SimulationD3{15}
 
 function SimulationD2Q9(
@@ -80,7 +80,7 @@ function SimulationD2Q9(
         2,
     )
 
-    directions = [
+    velocities = [
         [0, 0],
         [1, 0],
         [0, 1],
@@ -127,7 +127,7 @@ function SimulationD2Q9(
         equilibrium_distribution,
         mass_densities,
         momentum_densities,
-        directions,
+        velocities,
         weights,
         lattice_speed_squared,
         delta_t,
@@ -169,7 +169,7 @@ function SimulationD3Q15(
         3,
     )
 
-    directions = [
+    velocities = [
         [0, 0, 0],
         [1, 0, 0],
         [-1, 0, 0],
@@ -232,7 +232,7 @@ function SimulationD3Q15(
         equilibrium_distribution,
         mass_densities,
         momentum_densities,
-        directions,
+        velocities,
         weights,
         lattice_speed_squared,
         delta_t,
@@ -344,7 +344,7 @@ function get_reynolds_number(
     dimension=2,
 )
     if length(simulation.sources) > 1
-        throw(ErrorException("Stream direction ambiguous for multiple sources"))
+        throw(ErrorException("Stream velocity ambiguous for multiple sources"))
     end
 
     if length(simulation.sources) == 0
@@ -467,7 +467,7 @@ end
             #! format: off
             simulation.momentum_densities[j, i, :] = (
                 sum(
-                    simulation.directions
+                    simulation.velocities
                     .* simulation.velocity_distribution[j, i, :],
                 )
             )
@@ -484,7 +484,7 @@ end
                 #! format: off
                 simulation.momentum_densities[k, j, i, :] = (
                     sum(
-                        simulation.directions
+                        simulation.velocities
                         .* simulation.velocity_distribution[k, j, i, :],
                     )
                 )
@@ -522,9 +522,9 @@ end
 
     @inbounds for i ∈ axes(simulation.equilibrium_distribution, 3)
         uv = @. (
-            simulation.directions[i][1] * u[:, :, 1]
+            simulation.velocities[i][1] * u[:, :, 1]
             +
-            simulation.directions[i][2] * u[:, :, 2]
+            simulation.velocities[i][2] * u[:, :, 2]
         )
 
         #! format: off
@@ -559,9 +559,9 @@ end
     @inbounds for i ∈ axes(simulation.equilibrium_distribution, 4)
         #! format: off
         uv = @. (
-            simulation.directions[i][1] * u[:, :, :, 1]
-            + simulation.directions[i][2] * u[:, :, :, 2]
-            + simulation.directions[i][3] * u[:, :, :, 3]
+            simulation.velocities[i][1] * u[:, :, :, 1]
+            + simulation.velocities[i][2] * u[:, :, :, 2]
+            + simulation.velocities[i][3] * u[:, :, :, 3]
         )
 
         # Tried
@@ -598,7 +598,7 @@ function stream!(simulation::SimulationD2)
     simulation.velocity_distribution_buffer .= simulation.velocity_distribution
 
     @inbounds for i ∈ axes(simulation.velocity_distribution, 3)
-        dx, dy = simulation.directions[i]
+        dx, dy = simulation.velocities[i]
         nx, ny = size(simulation.velocity_distribution)[1:2]
 
         for j ∈ 1:ny, k ∈ 1:nx
@@ -616,7 +616,7 @@ function stream!(simulation::SimulationD3)
     simulation.velocity_distribution_buffer .= simulation.velocity_distribution
 
     @inbounds Threads.@threads for i ∈ axes(simulation.velocity_distribution, 4)
-        dx, dy, dz = simulation.directions[i]
+        dx, dy, dz = simulation.velocities[i]
         nx, ny, nz = size(simulation.velocity_distribution)[1:3]
 
         for j ∈ 1:nz, k ∈ 1:ny, m ∈ 1:nx
@@ -682,7 +682,7 @@ function compute_momentum_densities!(
             #! format: off
             @views simulation.momentum_densities[j, i, :] = (
                 sum(
-                    simulation.directions
+                    simulation.velocities
                     .* simulation.velocity_distribution[j, i, :],
                 )
             )
@@ -703,7 +703,7 @@ function compute_momentum_densities!(
                 #! format: off
                 @views simulation.momentum_densities[k, j, i, :] = (
                     sum(
-                        simulation.directions
+                        simulation.velocities
                         .* simulation.velocity_distribution[k, j, i, :],
                     )
                 )
@@ -754,8 +754,8 @@ end
     @inbounds for i ∈ axes(simulation.equilibrium_distribution, 3)
         #! format: off
         uv = @. (
-            simulation.directions[i][1] * u[:, :, 1]
-            + simulation.directions[i][2] * u[:, :, 2]
+            simulation.velocities[i][1] * u[:, :, 1]
+            + simulation.velocities[i][2] * u[:, :, 2]
         )
 
         # Tried
@@ -793,9 +793,9 @@ end
 
     @inbounds for i ∈ axes(simulation.equilibrium_distribution, 4)
         uv = @. (
-            simulation.directions[i][1] * u[:, :, :, 1]
-            + simulation.directions[i][2] * u[:, :, :, 2]
-            + simulation.directions[i][3] * u[:, :, :, 3]
+            simulation.velocities[i][1] * u[:, :, :, 1]
+            + simulation.velocities[i][2] * u[:, :, :, 2]
+            + simulation.velocities[i][3] * u[:, :, :, 3]
         )
 
         #! format: off

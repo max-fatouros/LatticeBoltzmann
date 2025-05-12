@@ -274,7 +274,7 @@ function animate_live!(
     return fig
 end
 
-function plot_directions(
+function plot_velocities(
     simulation::SimulationD2;
 )
     fig = Figure()
@@ -282,10 +282,10 @@ function plot_directions(
 
     ax = CairoMakie.Axis(fig[1, 1])
 
-    xs = collect([0 for direction ∈ simulation.directions])
-    ys = collect([0 for direction ∈ simulation.directions])
-    us = collect([direction[1] for direction ∈ simulation.directions])
-    vs = collect([direction[2] for direction ∈ simulation.directions])
+    xs = collect([0 for velocity ∈ simulation.velocities])
+    ys = collect([0 for velocity ∈ simulation.velocities])
+    us = collect([velocity[1] for velocity ∈ simulation.velocities])
+    vs = collect([velocity[2] for velocity ∈ simulation.velocities])
 
     arrows!(
         ax,
@@ -304,10 +304,10 @@ function plot_directions(
         fontsize=30,
     )
 
-    for i ∈ 2:length(simulation.directions)
+    for i ∈ 2:length(simulation.velocities)
         text!(
             ax,
-            1.2 * simulation.directions[i]...;
+            1.2 * simulation.velocities[i]...;
             text=L"v_{%$i}",
             align=(:center, :center),
             fontsize=30,
@@ -321,16 +321,16 @@ function plot_directions(
     return fig
 end
 
-function plot_directions(
+function plot_velocities(
     simulation::SimulationD3Q15;
 )
     fig = Figure()
 
     CairoMakie.activate!()
 
-    us = collect([direction[1] for direction ∈ simulation.directions])
-    vs = collect([direction[2] for direction ∈ simulation.directions])
-    ws = collect([direction[3] for direction ∈ simulation.directions])
+    us = collect([velocity[1] for velocity ∈ simulation.velocities])
+    vs = collect([velocity[2] for velocity ∈ simulation.velocities])
+    ws = collect([velocity[3] for velocity ∈ simulation.velocities])
 
     for i ∈ -1:1
         indices = findall(
@@ -358,7 +358,7 @@ function plot_directions(
             else
                 text!(
                     ax,
-                    1.2 * simulation.directions[index]...;
+                    1.2 * simulation.velocities[index]...;
                     text=L"v_{%$index}",
                     align=(:center, :center),
                     fontsize=30,

@@ -69,7 +69,6 @@ where $\mathbf x$ and $t$ are now defined on a lattice, and $\mathbf v_{i}$ is a
 $\mathbf x$, $\mathbf v_{i}$ and $t$ are now to be thought of as defining the centre of a bin of particles with bin-volume $\Delta \mathbf x \Delta \mathbf v_{i}\Delta t$.
 The number of particles in the bin is then given directly by $F(\mathbf x, \mathbf v_{i}, t)$.
 
-The unit vectors in the direction of $\mathbf v_{i}$ are defined as $\mathbf e_{i}$.
 
 To calculate the macroscopic observables of interest, we take the moments of the phase-space density
 \begin{equation}
@@ -144,15 +143,15 @@ The code for this simulation was written in Julia.
 The D2Q9 and D3Q15 methods were implemented.
 
 \subsubsection{D2Q9 Model}
-The D2Q9 models defines the directions $\mathbf e_{i}$ as shown in~\Cref{fig:direction-d2q9}.
+The D2Q9 models defines the velocities $\mathbf v_{i}$ as shown in~\Cref{fig:velocity-d2q9}.
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.5\textwidth]{directions_d2q9}
-    \caption{The directions of the unit vectors in the D2Q9 model.}
-    \label{fig:direction-d2q9}
+    \includegraphics[width=0.5\textwidth]{velocities_d2q9}
+    \caption{The velocities in the D2Q9 model.}
+    \label{fig:velocity-d2q9}
 \end{figure}
 
-The weights associated with these directions are~\cite{bottcher_computational_2021}
+The weights associated with these velocities are~\cite{bottcher_computational_2021}
 \[
   w_{i} =
     \begin{cases}
@@ -162,9 +161,9 @@ The weights associated with these directions are~\cite{bottcher_computational_20
    \end{cases}
 \]
 \subsubsection{D3Q15 Model}
-The D3Q15 model defines the directions $\mathbf e_{i}$ as shown in~\Cref{fig:direction-d3q15}.
+The D3Q15 model defines the velocities $\mathbf e_{i}$ as shown in~\Cref{fig:velocity-d3q15}.
 
-The weights associated with these directions are~\cite{arumuga_perumal_review_2015}
+The weights associated with these velocities are~\cite{arumuga_perumal_review_2015}
 
 \[
   w_{i} =
@@ -177,9 +176,9 @@ The weights associated with these directions are~\cite{arumuga_perumal_review_20
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=\textwidth]{directions_d3q15}
-    \caption{The direction of the unit vectors in the D3Q15 model. The $e_{13}$ vector for example has a value of $[-1, 1, -1]$ when read from this plot.}
-    \label{fig:direction-d3q15}
+    \includegraphics[width=\textwidth]{velocities_d3q15}
+    \caption{The velocities in the D3Q15 model. The $v_{13}$ vector for example has a value of $[-1, 1, -1]$ when read from this plot.}
+    \label{fig:velocity-d3q15}
 \end{figure}
 
 \section{Results}
