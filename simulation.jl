@@ -48,13 +48,13 @@ function Simulation{dimensions,directions}() where {dimensions,directions}
     }
 end
 
-const Simulation2D{directions} = Simulation{2,3,directions}
-const Simulation2DQ9 = Simulation2D{9}
+const SimulationD2{directions} = Simulation{2,3,directions}
+const SimulationD2Q9 = SimulationD2{9}
 
-const Simulation3D{directions} = Simulation{3,4,directions}
-const Simulation3DQ15 = Simulation3D{15}
+const SimulationD3{directions} = Simulation{3,4,directions}
+const SimulationD3Q15 = SimulationD3{15}
 
-function Simulation2DQ9(
+function SimulationD2Q9(
     time_steps;
     divisions=(400, 100),
 )
@@ -121,7 +121,7 @@ function Simulation2DQ9(
     # object_mask[1:end, 1] .= true
     # object_mask[1:end, end] .= true
 
-    simulation = Simulation2DQ9(
+    simulation = SimulationD2Q9(
         velocity_distribution,
         similar(velocity_distribution),
         equilibrium_distribution,
@@ -143,7 +143,7 @@ function Simulation2DQ9(
     return simulation
 end
 
-function Simulation3DQ15(
+function SimulationD3Q15(
     time_steps;
     divisions=(200, 100, 100),
 )
@@ -226,7 +226,7 @@ function Simulation3DQ15(
     # object_mask[:, 1, :] .= true
     # object_mask[:, end, :] .= true
 
-    simulation = Simulation3DQ15(
+    simulation = SimulationD3Q15(
         velocity_distribution,
         similar(velocity_distribution),
         equilibrium_distribution,
@@ -249,7 +249,7 @@ function Simulation3DQ15(
     return simulation
 end
 
-function reset!(simulation::Simulation2DQ9)
+function reset!(simulation::SimulationD2Q9)
     initial_velocity_distribution = ones(
         Float64,
         size(simulation.mass_densities)...,
@@ -290,7 +290,7 @@ function reset!(simulation::Simulation2DQ9)
     return
 end
 
-function reset!(simulation::Simulation3DQ15)
+function reset!(simulation::SimulationD3Q15)
     initial_velocity_distribution = ones(
         Float64,
         size(simulation.mass_densities)...,
@@ -369,7 +369,7 @@ function set_sources!(simulation::Simulation)
     end
 end
 
-function get_speeds(simulation::Simulation2D)
+function get_speeds(simulation::SimulationD2)
     velocities = (
         simulation.momentum_densities
         ./
@@ -383,7 +383,7 @@ function get_speeds(simulation::Simulation2D)
     return speeds
 end
 
-function get_speeds(simulation::Simulation3D)
+function get_speeds(simulation::SimulationD3)
     velocities = (
         simulation.momentum_densities
         ./
@@ -397,14 +397,14 @@ function get_speeds(simulation::Simulation3D)
     return speeds
 end
 
-function get_velocities_in_objects(simulation::Simulation2DQ9)
+function get_velocities_in_objects(simulation::SimulationD2Q9)
     # https://github.com/pmocz/latticeboltzmann-python/blob/main/latticeboltzmann.py
     velocities_in_objects = simulation.velocity_distribution[simulation.object_mask, :]
     velocities_in_objects = velocities_in_objects[:, [1, 4, 5, 2, 3, 8, 9, 6, 7]]
     return velocities_in_objects
 end
 
-function get_velocities_in_objects(simulation::Simulation3DQ15)
+function get_velocities_in_objects(simulation::SimulationD3Q15)
     # https://github.com/pmocz/latticeboltzmann-python/blob/main/latticeboltzmann.py
     #!format: off
     velocities_in_objects = simulation.velocity_distribution[simulation.object_mask, :]
@@ -441,7 +441,7 @@ end
 """
 function set_no_bounce_boundaries!(simulation::Simulation) end
 
-function set_no_bounce_boundaries!(simulation::Simulation2DQ9)
+function set_no_bounce_boundaries!(simulation::SimulationD2Q9)
     simulation.velocity_distribution[end, :, :] .= (
         simulation.velocity_distribution[end-1, :, :]
     )
@@ -451,7 +451,7 @@ function set_no_bounce_boundaries!(simulation::Simulation2DQ9)
     return
 end
 
-function set_no_bounce_boundaries!(simulation::Simulation3DQ15)
+function set_no_bounce_boundaries!(simulation::SimulationD3Q15)
     simulation.velocity_distribution[end, :, :, :] .= (
         simulation.velocity_distribution[end-1, :, :, :]
     )
@@ -461,7 +461,7 @@ function set_no_bounce_boundaries!(simulation::Simulation3DQ15)
     return
 end
 
-@views function compute_momentum_densities!(simulation::Simulation2D)
+@views function compute_momentum_densities!(simulation::SimulationD2)
     @inbounds for i ∈ axes(simulation.velocity_distribution, 2)
         for j ∈ axes(simulation.velocity_distribution, 1)
             #! format: off
@@ -477,7 +477,7 @@ end
     return
 end
 
-@views function compute_momentum_densities!(simulation::Simulation3D)
+@views function compute_momentum_densities!(simulation::SimulationD3)
     @inbounds for i ∈ axes(simulation.velocity_distribution, 3)
         for j ∈ axes(simulation.velocity_distribution, 2)
             for k ∈ axes(simulation.velocity_distribution, 1)
@@ -495,7 +495,7 @@ end
     return
 end
 
-function compute_mass_densities!(simulation::Simulation2D)
+function compute_mass_densities!(simulation::SimulationD2)
     #tried
     # - @views
     simulation.mass_densities .=
@@ -503,7 +503,7 @@ function compute_mass_densities!(simulation::Simulation2D)
     return
 end
 
-function compute_mass_densities!(simulation::Simulation3D)
+function compute_mass_densities!(simulation::SimulationD3)
     #tried
     # - @views
     simulation.mass_densities .=
@@ -511,7 +511,7 @@ function compute_mass_densities!(simulation::Simulation3D)
     return
 end
 
-@views function compute_equilibrium_distribution!(simulation::Simulation2D)
+@views function compute_equilibrium_distribution!(simulation::SimulationD2)
     u = simulation.momentum_densities ./ simulation.mass_densities
 
     uu = @. u[:, :, 1]^2 + u[:, :, 2]^2
@@ -546,7 +546,7 @@ end
     return
 end
 
-@views function compute_equilibrium_distribution!(simulation::Simulation3D)
+@views function compute_equilibrium_distribution!(simulation::SimulationD3)
     u = simulation.momentum_densities ./ simulation.mass_densities
 
     # uu = sum(u .^ 2; dims=3)[:, :, 1]
@@ -594,7 +594,7 @@ function collide!(simulation::Simulation)
     return
 end
 
-function stream!(simulation::Simulation2D)
+function stream!(simulation::SimulationD2)
     simulation.velocity_distribution_buffer .= simulation.velocity_distribution
 
     @inbounds for i ∈ axes(simulation.velocity_distribution, 3)
@@ -612,7 +612,7 @@ function stream!(simulation::Simulation2D)
     return
 end
 
-function stream!(simulation::Simulation3D)
+function stream!(simulation::SimulationD3)
     simulation.velocity_distribution_buffer .= simulation.velocity_distribution
 
     @inbounds Threads.@threads for i ∈ axes(simulation.velocity_distribution, 4)
@@ -631,7 +631,7 @@ function stream!(simulation::Simulation3D)
     return
 end
 
-function singlethreaded_update!(simulation::Simulation2D)
+function singlethreaded_update!(simulation::SimulationD2)
     set_no_bounce_boundaries!(simulation)
 
     velocities_in_objects = get_velocities_in_objects(simulation)
@@ -652,7 +652,7 @@ function singlethreaded_update!(simulation::Simulation2D)
     return
 end
 
-function singlethreaded_update!(simulation::Simulation3D)
+function singlethreaded_update!(simulation::SimulationD3)
     set_no_bounce_boundaries!(simulation)
 
     velocities_in_objects = get_velocities_in_objects(simulation)
@@ -673,7 +673,7 @@ function singlethreaded_update!(simulation::Simulation3D)
 end
 
 function compute_momentum_densities!(
-    simulation::Simulation2D,
+    simulation::SimulationD2,
     chunk_start::Int,
     chunk_end::Int,
 )
@@ -693,7 +693,7 @@ function compute_momentum_densities!(
 end
 
 function compute_momentum_densities!(
-    simulation::Simulation3D,
+    simulation::SimulationD3,
     chunk_start::Int,
     chunk_end::Int,
 )
@@ -714,7 +714,7 @@ function compute_momentum_densities!(
     return
 end
 
-function compute_mass_densities!(simulation::Simulation2D, chunk_start::Int, chunk_end::Int)
+function compute_mass_densities!(simulation::SimulationD2, chunk_start::Int, chunk_end::Int)
     #tried
     # - @views
     @views simulation.mass_densities[:, chunk_start:chunk_end] .=
@@ -725,7 +725,7 @@ function compute_mass_densities!(simulation::Simulation2D, chunk_start::Int, chu
     return
 end
 
-function compute_mass_densities!(simulation::Simulation3D, chunk_start::Int, chunk_end::Int)
+function compute_mass_densities!(simulation::SimulationD3, chunk_start::Int, chunk_end::Int)
     #tried
     # - @views
     @views simulation.mass_densities[:, :, chunk_start:chunk_end] .=
@@ -737,7 +737,7 @@ function compute_mass_densities!(simulation::Simulation3D, chunk_start::Int, chu
 end
 
 @views function compute_equilibrium_distribution!(
-    simulation::Simulation2D,
+    simulation::SimulationD2,
     chunk_start::Int,
     chunk_end::Int,
 )
@@ -777,7 +777,7 @@ end
 end
 
 @views function compute_equilibrium_distribution!(
-    simulation::Simulation3D,
+    simulation::SimulationD3,
     chunk_start::Int,
     chunk_end::Int,
 )
@@ -817,7 +817,7 @@ end
     return
 end
 
-@views function collide!(simulation::Simulation2D, chunk_start::Int, chunk_end::Int)
+@views function collide!(simulation::SimulationD2, chunk_start::Int, chunk_end::Int)
     #! format: off
     @. simulation.velocity_distribution[:, chunk_start:chunk_end, :] = (
         simulation.velocity_distribution[:, chunk_start:chunk_end, :]
@@ -830,7 +830,7 @@ end
 
     return
 end
-@views function collide!(simulation::Simulation3D, chunk_start::Int, chunk_end::Int)
+@views function collide!(simulation::SimulationD3, chunk_start::Int, chunk_end::Int)
     #! format: off
     @. simulation.velocity_distribution[:, :, chunk_start:chunk_end, :] = (
         simulation.velocity_distribution[:, :, chunk_start:chunk_end, :]
@@ -844,7 +844,7 @@ end
     return
 end
 
-function multithreaded_update!(simulation::Simulation2D)
+function multithreaded_update!(simulation::SimulationD2)
     set_no_bounce_boundaries!(simulation)
 
     velocities_in_objects = get_velocities_in_objects(simulation)
@@ -877,7 +877,7 @@ function multithreaded_update!(simulation::Simulation2D)
     return
 end
 
-function multithreaded_update!(simulation::Simulation3D)
+function multithreaded_update!(simulation::SimulationD3)
     set_no_bounce_boundaries!(simulation)
 
     velocities_in_objects = get_velocities_in_objects(simulation)

@@ -5,7 +5,7 @@ output_dir = "report/media"
 mkpath(output_dir)
 
 function single_sphere_scene()
-    simulation = Simulation2DQ9(
+    simulation = SimulationD2Q9(
         1000,
         # 100_000,
     )
@@ -24,12 +24,12 @@ function make_direction_plots()
             markersize=20,
         ),
     ) do
-        f = plot_directions(Simulation2DQ9(100; divisions=(10, 10)))
+        f = plot_directions(SimulationD2Q9(100; divisions=(10, 10)))
         display(f)
         path = joinpath(output_dir, "directions_d2q9.png")
         save(path, f)
 
-        f = plot_directions(Simulation3DQ15(100; divisions=(10, 10, 10)))
+        f = plot_directions(SimulationD3Q15(100; divisions=(10, 10, 10)))
         display(f)
         path = joinpath(output_dir, "directions_d3q15.png")
         return save(path, f)

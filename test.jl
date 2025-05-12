@@ -6,8 +6,8 @@ includet("simulation.jl")
 includet("plots.jl")
 includet("geometry.jl")
 
-# simulation = Simulation2DQ9(
 #     100_000,
+# simulation = SimulationD2Q9(
 # )
 
 # add_sphere!(
@@ -17,7 +17,7 @@ includet("geometry.jl")
 # )
 
 # cylinder vortices
-# simulation = Simulation3DQ15(
+# simulation = SimulationD3Q15(
 #     500;
 #     divisions=(75, 30, 30),
 # )
@@ -28,7 +28,7 @@ includet("geometry.jl")
 #     lengths=(2, 5, 5),
 # )
 
-simulation = Simulation3DQ15(
+simulation = SimulationD3Q15(
     1000;
     divisions=(75, 30, 30),
 )

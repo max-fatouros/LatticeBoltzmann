@@ -7,7 +7,7 @@ include("simulation.jl")
 GLMakie.activate!(; float=true)
 
 function plot_speeds(
-    simulation::Observable{<:Simulation2D};
+    simulation::Observable{<:SimulationD2};
     ax=nothing,
     kwargs...,
 )
@@ -44,7 +44,7 @@ function plot_speeds(
 end
 
 function plot_speeds(
-    simulation::Observable{<:Simulation3D};
+    simulation::Observable{<:SimulationD3};
     ax=nothing,
     kwargs...,
 )
@@ -86,7 +86,7 @@ function plot_speeds(
 end
 
 function plot_velocities(
-    simulation::Observable{<:Simulation2D};
+    simulation::Observable{<:SimulationD2};
     ax=nothing,
     kwargs...,
 )
@@ -128,7 +128,7 @@ function plot_velocities(
 end
 
 function plot_objects(
-    simulation::Observable{<:Simulation2D};
+    simulation::Observable{<:SimulationD2};
     ax=nothing,
     kwargs...,
 )
@@ -146,7 +146,7 @@ function plot_objects(
 end
 
 function plot_objects(
-    simulation::Observable{<:Simulation3D};
+    simulation::Observable{<:SimulationD3};
     ax=nothing,
     kwargs...,
 )
@@ -185,9 +185,9 @@ function animate_speeds!(
     fig = Figure()
     sim = Observable(simulation)
     ax = nothing
-    if typeof(simulation) <: Simulation2D
+    if typeof(simulation) <: SimulationD2
         ax = CairoMakie.Axis(fig[1, 1]; aspect=DataAspect())
-    elseif typeof(simulation) <: Simulation3D
+    elseif typeof(simulation) <: SimulationD3
         ax = Axis3(fig[1, 1]; aspect=:data)
     end
 
@@ -246,9 +246,9 @@ function animate_live!(
     sim = Observable(simulation)
 
     ax = nothing
-    if typeof(simulation) <: Simulation2D
+    if typeof(simulation) <: SimulationD2
         ax = CairoMakie.Axis(fig[1, 1]; aspect=DataAspect())
-    elseif typeof(simulation) <: Simulation3D
+    elseif typeof(simulation) <: SimulationD3
         ax = Axis3(fig[1, 1]; aspect=:data)
     end
 
@@ -272,7 +272,7 @@ function animate_live!(
 end
 
 function plot_directions(
-    simulation::Simulation2D;
+    simulation::SimulationD2;
 )
     fig = Figure()
     CairoMakie.activate!()
@@ -317,7 +317,7 @@ function plot_directions(
 end
 
 function plot_directions(
-    simulation::Simulation3DQ15;
+    simulation::SimulationD3Q15;
 )
     fig = Figure()
 
