@@ -96,14 +96,13 @@ We'll adopt the notation $F_{i} = F(\mathbf x, \mathbf v_{i}, t)$. At every give
   F^{\textnormal{eq}}_{i}
   = w_{i}\rho
   \left[1
-    + \frac{3}{c_{s}^{2}}\mathbf u \cdot \mathbf v_{i}
-    + \frac{9}{2c_{s}^{4}}(\mathbf u \cdot \mathbf v_{i})^{2}
-    + \frac{3}{2c_{s}^{2}}\mathbf u^{2}
+    + \frac{3}{c^{2}}\mathbf u \cdot \mathbf v_{i}
+    + \frac{9}{2c^{4}}(\mathbf u \cdot \mathbf v_{i})^{2}
+    + \frac{3}{2c^{2}}\mathbf u^{2}
   \right]
 \end{equation}
-The weight term $w_{i}$, and the rest of~\Cref{eq:equilibrium} can be found by an expansion of the Maxwell-Boltzmann distribution in Hermite polynomials~\cite{bottcher_computational_2021}.
-
-The term $c_{s}$\todo[inline]{find correct term}
+The weight term $w_{i}$, and the rest of~\Cref{eq:equilibrium} can be found by an expansion of the Maxwell-Boltzmann distribution in Hermite polynomials~\cite{bottcher_computational_2021}. The term $c=\frac{\Delta x}{\Delta t}$ is the lattice speed.
+The speed of sound can be derived from it as $c_{s} = \frac{c}{\sqrt 3}$
 
 We can then \emph{collide} the particles, to move them one step closer to their equilibrium distribution
 \begin{equation}
@@ -115,18 +114,20 @@ We can then \emph{collide} the particles, to move them one step closer to their 
     - F(\mathbf x, \mathbf v_{i}, t)
   \right]
 \end{equation}
+$\tau$ is defined as the characteristic time of the simulation, and is parameter we vary to influence the viscosity of the model, defined as~\cite{mei_lattice_2000}
+\begin{equation}
+  \nu = (\tau - 0.5)c_{s}^{2} \Delta t
+\end{equation}
 
-after that, we \emph{stream} the particles, moving each density bin $F_{i}(\mathbf x, \mathbf v_{i}, t)$ in the direction of its velocity via
+after \emph{colliding}, we \emph{stream} the particles, moving each density bin $F_{i}(\mathbf x, \mathbf v_{i}, t)$ in the direction of its velocity via
 \begin{equation}
   F_{i}(\mathbf x + \Delta t\mathbf v_{i}, \mathbf v_{i}, t + \Delta t)
   = F^{*}(\mathbf x, \mathbf v_{i}, t)
 \end{equation}
 where $\Delta t \mathbf v_{i}$ must be chosen such that $\mathbf x + \Delta t \mathbf v_{i}$ falls on a lattice site.
+In practice, the velocities are often chosen such $\Delta t$ can be set to $\Delta t = n$ with $n = 1$ or more generally $n \in \mathbb{Z}_{+}$
 
 
-
-
-The number of spatial dimensions $N$ and the number of discrete velocities $M$ are often characterized by a naming scheme as DNQM. Therefore, a system in 2 dimensions with 9 discrete velocities is denoted as D2Q9.
 
 
 
@@ -150,7 +151,10 @@ The edges of the lattice can have either periodic or no-bounce boundary conditio
 
 \section{Method}
 The code for this simulation was written in Julia.
-The D2Q9 and D3Q15 methods were implemented.
+
+The number of spatial dimensions $N$ and the number of discrete velocities $M$ are often characterized by a naming scheme as DNQM. Therefore, a system in 2 dimensions with 9 discrete velocities is denoted as D2Q9.
+
+In this paper, the D2Q9 and D3Q15 methods were implemented.
 
 \subsubsection{D2Q9 Model}
 The D2Q9 models defines the velocities $\mathbf v_{i}$ as shown in~\Cref{fig:velocity-d2q9}.
