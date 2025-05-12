@@ -118,9 +118,10 @@ We can then \enquote{collide} the particles, to move them one step closer to the
 
 after that, we \enquote{stream} the particles, moving each density bin $F_{i}(\mathbf x, \mathbf v_{i}, t)$ in the direction of its velocity via
 \begin{equation}
-  F_{i}(\mathbf x + \mathbf v_{i}, \mathbf v_{i}, t + \Delta t)
+  F_{i}(\mathbf x + \Delta t\mathbf v_{i}, \mathbf v_{i}, t + \Delta t)
   = F^{*}(\mathbf x, \mathbf v_{i}, t)
 \end{equation}
+where $\Delta t \mathbf v_{i}$ must be chosen such that $\mathbf x + \Delta t \mathbf v_{i}$ falls on a lattice site.
 
 
 
