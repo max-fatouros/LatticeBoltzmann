@@ -182,6 +182,7 @@ function animate_speeds!(
     ax=nothing,
     kwargs...,
 )
+    GLMakie.activate!(; float=true)
     fig = Figure()
     sim = Observable(simulation)
     ax = nothing
@@ -218,6 +219,7 @@ end
 
 # TODO: pass plot function
 function animate_speeds_with_slider(simulations::Vector{Simulation})
+    GLMakie.activate!(; float=true)
     fig = Figure()
     slider = Slider(
         fig[2, 1];
@@ -242,6 +244,7 @@ function animate_live!(
     show_every=100,
     kwargs...,
 )
+    GLMakie.activate!(; float=true)
     fig = Figure()
     sim = Observable(simulation)
 
