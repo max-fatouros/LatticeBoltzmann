@@ -50,7 +50,10 @@ These particles move, or \emph{stream}, at discrete velocites in strait lines, u
 
 When two or more particles encounter one another, they \emph{collide}, and based on some rule set, change their velocities.
 
-\subsection{Lattice Boltzmann}
+
+\subsection{Lattice Boltzmann Method}
+Similar to Lattice Gas Automata, LBMs also have \emph{collision} and \emph{streaming} steps, but theses steps now act on the phase-space densities instead of individual particles.
+
 The phase-space density\footnotemark{} function for our system of particles is defined as $f(\mathbf x, \mathbf v, t)$.
 \footnotetext{
   I am refraining from calling $f$ a probability density function, and $F$ a probability mass function, since they can only be normalized properly at fixed slices through time.
