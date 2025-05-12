@@ -294,8 +294,8 @@ function plot_directions(
 
     text!(
         ax,
-        0.2,
-        0.1;
+        0.3,
+        0.15;
         text=L"e_{1}",
         align=(:center, :center),
         fontsize=30,
@@ -312,6 +312,8 @@ function plot_directions(
     end
 
     colsize!(fig.layout, 1, Aspect(1, 1.0))
+    ax.xlabel = "x-layer"
+    ax.ylabel = "y-layer"
     resize_to_layout!(fig)
     return fig
 end
@@ -344,8 +346,8 @@ function plot_directions(
             if index in (1, 6, 7)
                 text!(
                     ax,
-                    0.2,
-                    0.1;
+                    0.3,
+                    0.15;
                     text=L"e_{%$index}",
                     align=(:center, :center),
                     fontsize=30,
@@ -362,10 +364,10 @@ function plot_directions(
         end
         colsize!(fig.layout, i, Aspect(1, 1.0))
         ax.title = "Z-layer $i"
-        ax.xlabel = "x axis"
+        ax.xlabel = "x-layer"
 
         if i == -1
-            ax.ylabel = "y axis"
+            ax.ylabel = "y-layer"
             continue
         end
         ax.yticklabelsvisible = false
