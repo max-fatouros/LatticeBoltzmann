@@ -270,3 +270,108 @@ function animate_live!(
     end
     return fig
 end
+
+function plot_directions(
+    simulation::Simulation2D;
+)
+    fig = Figure()
+    CairoMakie.activate!()
+
+    ax = CairoMakie.Axis(fig[1, 1])
+
+    xs = collect([0 for direction ∈ simulation.directions])
+    ys = collect([0 for direction ∈ simulation.directions])
+    us = collect([direction[1] for direction ∈ simulation.directions])
+    vs = collect([direction[2] for direction ∈ simulation.directions])
+
+    arrows!(
+        ax,
+        xs[2:end],
+        ys[2:end],
+        us[2:end],
+        vs[2:end],
+    )
+
+    text!(
+        ax,
+        0.2,
+        0.1;
+        text=L"e_{1}",
+        align=(:center, :center),
+        fontsize=30,
+    )
+
+    for i ∈ 2:length(simulation.directions)
+        text!(
+            ax,
+            1.2 * simulation.directions[i]...;
+            text=L"e_{%$i}",
+            align=(:center, :center),
+            fontsize=30,
+        )
+    end
+
+    colsize!(fig.layout, 1, Aspect(1, 1.0))
+    resize_to_layout!(fig)
+    return fig
+end
+
+function plot_directions(
+    simulation::Simulation3DQ15;
+)
+    fig = Figure()
+
+    CairoMakie.activate!()
+
+    us = collect([direction[1] for direction ∈ simulation.directions])
+    vs = collect([direction[2] for direction ∈ simulation.directions])
+    ws = collect([direction[3] for direction ∈ simulation.directions])
+
+    for i ∈ -1:1
+        indices = findall(
+            x -> x == i,
+            ws,
+        )
+        ax = CairoMakie.Axis(fig[1, i]; aspect=DataAspect())
+
+        scatter!(
+            ax,
+            us[indices],
+            vs[indices],
+        )
+
+        for index ∈ indices
+            if index in (1, 6, 7)
+                text!(
+                    ax,
+                    0.2,
+                    0.1;
+                    text=L"e_{%$index}",
+                    align=(:center, :center),
+                    fontsize=30,
+                )
+            else
+                text!(
+                    ax,
+                    1.2 * simulation.directions[index]...;
+                    text=L"e_{%$index}",
+                    align=(:center, :center),
+                    fontsize=30,
+                )
+            end
+        end
+        colsize!(fig.layout, i, Aspect(1, 1.0))
+        ax.title = "Z-layer $i"
+        ax.xlabel = "x axis"
+
+        if i == -1
+            ax.ylabel = "y axis"
+            continue
+        end
+        ax.yticklabelsvisible = false
+        ax.yticksvisible = false
+    end
+
+    resize_to_layout!(fig)
+    return fig
+end
