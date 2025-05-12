@@ -1,33 +1,13 @@
+using Revise
 using BenchmarkTools
 
-include("simulation.jl")
-include("plots.jl")
-include("geometry.jl")
+includet("simulation.jl")
+includet("plots.jl")
+includet("geometry.jl")
+includet("workflows.jl")
 println()
 
-function single_sphere_scene()
-    simulation = Simulation2DQ9(
-        1000,
-        # 100_000,
-    )
-    add_sphere!(
-        simulation;
-        position=(50, 50),
-        radius=25,
-    )
-    return animate_speeds!(simulation)
-end
-
-simulation = Simulation2DQ9(
-    1000,
-    # 100_000,
-)
-add_sphere!(
-    simulation;
-    position=(50, 50),
-    radius=25,
-)
-animate_speeds_live!(simulation)
+# make_direction_plots()
 
 # simulation = Simulation{2}(
 #     # 1000,
