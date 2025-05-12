@@ -105,10 +105,9 @@ function SimulationD2Q9(
     ]
 
     # defined such that lattice_speed_squared == 1
-    delta_t = sqrt(1 / 3)
-
+    delta_t = 1
     delta_x = 1
-    lattice_speed_squared = (1 / 3) * (delta_x^2 / delta_t^2)
+    lattice_speed_squared = (delta_x / delta_t)^2
 
     characteristic_time = 0.6
 
@@ -208,10 +207,9 @@ function SimulationD3Q15(
     ]
 
     # defined such that lattice_speed_squared == 1
-    delta_t = sqrt(1 / 3)
-
+    delta_t = 1
     delta_x = 1
-    lattice_speed_squared = (1 / 3) * (delta_x^2 / delta_t^2)
+    lattice_speed_squared = (delta_x / delta_t)^2
 
     characteristic_time = 0.6
 
@@ -331,10 +329,14 @@ function reset!(simulation::SimulationD3Q15)
     return
 end
 
+function get_speeed_of_sound(simulation::Simulation)
+    return sqrt(simulation.lattice_speed_squared / 3)
+end
+
 function get_viscosity(simulation::Simulation)
     return (
                (simulation.parameters.characteristic_time - 0.5)
-           ) * simulation.lattice_speed_squared * simulation.delta_t
+           ) * get_speeed_of_sound(simulation)^2 * simulation.delta_t
 end
 
 function get_reynolds_number(
