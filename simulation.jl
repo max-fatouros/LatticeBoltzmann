@@ -107,11 +107,8 @@ function Simulation2DQ9(
     # defined such that lattice_speed_squared == 1
     delta_t = sqrt(1 / 3)
 
-    # TODO: compute this properly later
-    # delta_x = 1 / divisions[1]
     delta_x = 1
     lattice_speed_squared = (1 / 3) * (delta_x^2 / delta_t^2)
-    # lattice_speed_squared = 1
 
     characteristic_time = 0.6
 
@@ -213,11 +210,8 @@ function Simulation3DQ15(
     # defined such that lattice_speed_squared == 1
     delta_t = sqrt(1 / 3)
 
-    # TODO: compute this properly later
-    # delta_x = 1 / divisions[1]
     delta_x = 1
     lattice_speed_squared = (1 / 3) * (delta_x^2 / delta_t^2)
-    # lattice_speed_squared = 1
 
     characteristic_time = 0.6
 
