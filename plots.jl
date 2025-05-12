@@ -299,7 +299,7 @@ function plot_directions(
         ax,
         0.3,
         0.15;
-        text=L"e_{1}",
+        text=L"v_{1}",
         align=(:center, :center),
         fontsize=30,
     )
@@ -308,7 +308,7 @@ function plot_directions(
         text!(
             ax,
             1.2 * simulation.directions[i]...;
-            text=L"e_{%$i}",
+            text=L"v_{%$i}",
             align=(:center, :center),
             fontsize=30,
         )
@@ -351,7 +351,7 @@ function plot_directions(
                     ax,
                     0.3,
                     0.15;
-                    text=L"e_{%$index}",
+                    text=L"v_{%$index}",
                     align=(:center, :center),
                     fontsize=30,
                 )
@@ -359,7 +359,7 @@ function plot_directions(
                 text!(
                     ax,
                     1.2 * simulation.directions[index]...;
-                    text=L"e_{%$index}",
+                    text=L"v_{%$index}",
                     align=(:center, :center),
                     fontsize=30,
                 )
