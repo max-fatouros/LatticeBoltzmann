@@ -40,7 +40,15 @@
 
 The Lattice Boltzman Method (LBM) is computational fluid simulation method.
 
+\subsection{Lattice Gas Automata}
 
+Lattice Gas Automata (LGA) were the precursor to LBMs~\cite{sukop_lattice_2006}.
+
+LGA are cellular automata with individual particles on a lattice.
+
+These particles move, or \emph{stream}, at discrete velocites in strait lines, until the encounter another particle on the lattice.
+
+When two or more particles encounter one another, they \emph{collide}, and based on some rule set, change their velocities.
 
 \subsection{Lattice Boltzmann}
 The phase-space density\footnotemark{} function for our system of particles is defined as $f(\mathbf x, \mathbf v, t)$.
