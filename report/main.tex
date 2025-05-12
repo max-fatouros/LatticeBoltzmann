@@ -50,9 +50,9 @@ The phase-space density\footnotemark{} function for our system of particles is d
   I am refraining from calling $f$ a probability density function, and $F$ a probability mass function, since they can only be normalized properly at fixed slices through time.
 }
 The number\footnotemark{} of particles with position $\mathbf x_{0}$, momentum $\mathbf p_{0}$, at time $t_{0}$, such that
-\[
+\begin{equation}
   (\mathbf x, \mathbf p) < (\mathbf x_{0}, \mathbf p_{0}) < (\mathbf x + \delta \mathbf x, \mathbf p + \delta \mathbf p)
-\]
+\end{equation}
 is given by $f(\mathbf x,\mathbf p, t_{0})\delta \mathbf x \delta \mathbf p$.
 \footnotetext{
   For any fixed value $t=t_{0}$, $f(\mathbf x, \mathbf p, t_{0})$ can be thought of as either a probability density function, or a particle-number density function.
@@ -61,9 +61,9 @@ is given by $f(\mathbf x,\mathbf p, t_{0})\delta \mathbf x \delta \mathbf p$.
 }
 
 The LBM discretizes the system to get the discrete density function
-\[
+\begin{equation}
 F(\mathbf x, \mathbf p_{i}, t) = \int_{\mathbf x - \frac{1}{2}\Delta \mathbf x}^{\mathbf x + \frac{1}{2}\Delta \mathbf x}\int_{\mathbf p - \frac{1}{2}\Delta \mathbf p}^{\mathbf p + \frac{1}{2}\Delta \mathbf p}\int_{\mathbf x - \frac{1}{2}\Delta t}^{\mathbf x + \frac{1}{2}\Delta t} f(\mathbf x', \mathbf p', t') \delta \mathbf x' \delta \mathbf p' \delta t'
-\]
+\end{equation}
 where $\mathbf x$ and $t$ are now defined on a lattice, and $\mathbf p_{i}$ is a set of $M$ discrete momenta that the particles are constrained to have.
 
 $\mathbf x$, $\mathbf p_{i}$ and $t$ are now to be thought of as defining the centre of a bin of particles with bin-volume $\Delta \mathbf x \Delta \mathbf p_{i}\Delta t$.
@@ -72,13 +72,13 @@ The number of particles in the bin is then given directly by $F(\mathbf x, \math
 The unit vectors in the direction of $\mathbf p_{i}$ are defined as $\mathbf e_{i}$.
 
 To calculate the macroscopic observables of interest, we take the moments of the phase-space density
-\[
+\begin{equation}
   \rho(\mathbf x, t) = \sum_{i} F(\mathbf x, \mathbf p_{i}, t)
-\]
+\end{equation}
 
-\[
+\begin{equation}
   \rho(\mathbf x, t)  \mathbf u(\mathbf x, t) = \sum_{i} \mathbf e_{i} F(\mathbf x, \mathbf p_{i}, t)
-\]
+\end{equation}
 
 Where $\rho$ is the number of particles at lattice point $(\mathbf x, t)$ the and $\mathbf u$ is the average velocity of the ensemble of particles at lattice point $(\mathbf x, t)$.
 
