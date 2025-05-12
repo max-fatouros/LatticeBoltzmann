@@ -285,7 +285,7 @@ function reset!(simulation::Simulation2DQ9)
     simulation.mass_densities .= mass_densities
     simulation.momentum_densities .= momentum_densities
 
-    @info "reset"
+    @info "reset $(typeof(simulation))"
     @info "threads: $(Threads.nthreads())"
     return
 end
