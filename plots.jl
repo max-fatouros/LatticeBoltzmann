@@ -204,16 +204,17 @@ function animate!(
     )
     resize_to_layout!(fig)
 
+    prog = Progress(steps)
+
     record(
         fig,
         filename,
         1:(steps÷show_every),
     ) do t
-        @show t
         for _ ∈ 1:show_every
+            next!(prog)
             multithreaded_update!(sim[])
         end
-        # next!(prog)
         notify(sim)
         return sleep(1e-3)
     end
