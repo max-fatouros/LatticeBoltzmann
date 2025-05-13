@@ -36,7 +36,7 @@
 \pagenumbering{arabic}
 \setcounter{page}{1}
 
-\section{Introduction}
+\section{Introduction}\label{sec:introduction}
 
 The Lattice Boltzman Method (LBM) is computational fluid simulation method.
 
@@ -51,7 +51,7 @@ These particles move, or \emph{stream}, at discrete velocites in strait lines, u
 When two or more particles encounter one another, they \emph{collide}, and based on some rule set, change their velocities.
 
 
-\subsection{Lattice Boltzmann Method}
+\subsection{Lattice Boltzmann Method}\label{sec:introduction::lattice-boltzmann-method}
 Similar to Lattice Gas Automata, LBMs also have \emph{collision} and \emph{streaming} steps, but theses steps now act on the phase-space densities instead of individual particles.
 
 The phase-space density\footnotemark{} function for our system of particles is defined as $f(\mathbf x, \mathbf v, t)$.
