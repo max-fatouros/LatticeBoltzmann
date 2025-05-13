@@ -148,17 +148,37 @@ These boundary conditions are defined below.
 As usual, periodic boundary conditions can be ensured by taking the new lattice position modulo the number of lattice points.
 We can modify the streaming step in each direction j such that
 \begin{equation}
-  F_{i}\left((\mathbf x_{j} + \Delta t\mathbf v_{ij})\bmod \mathbf X_{j}, \mathbf v_{ij}, t + \Delta t\right)
-  = F^{*}(\mathbf x_{j}, \mathbf v_{ij}, t)
+  F_{i}\left((x^{(j)} + \Delta t v^{(j)}_{i})\bmod x^{(j)}_{N_{j}}, v^{(j)}_{i}, t + \Delta t\right)
+  = F^{*}(x^{(j)}, v^{(j)}_{i}, t)
 \end{equation}
-where $\mathbf X_{j}$ is the number of lattice points (the size of the lattice) in the $j$th dimension.
+
+where the superscript $(j)$ denotes the dimensions, and the subscript $k$ denotes the lattice index in the $j$ dimensions, and $N_{j}$ is the number of lattice points in the $j$ dimension.
+
 
 
 \subsubsection{Bounce-Back}
-Bounce-back boundary conditions are used for the surfaces of objects in the simulations.
+Bounce-back boundary conditions are used for the surfaces of objects in the simulations, as opposed to the boundary of the lattice itself.
+
+When a phase-space density element streams into a bounce-back boundary, the density element skips the collision step and reverses all of its discrete velocity elements. Therefore, for all $\mathbf x$ in our boundary, the collision step is written as
+\begin{equation}
+  F^{*}(\mathbf x, \mathbf v_{i}, t)
+  = F(\mathbf x, - \mathbf v_{i}, t)
+\end{equation}
+the remaining collision steps are unchanged.
+
 
 \subsubsection{No-Bounce}
-No-bounce boundary conditions are used for the lattice boundaries of our model.
+No-bounce boundary conditions are used at the outlets of our model, where we want any density-flow to disappear without reentering the other side of the lattice like they do with the periodic conditions.
+There are some more advanced methods to set a boundary to an arbitrary velocity value (including zero), that could be used in our case, such as the Zou-He boundary conditions~\cite{zou_pressure_1997}
+However, in our case we are only concerned with having the flow disappear at the outlet, and so this can effectively be done by setting the derivative of the density function at the outlet to zero.
+This is done simply by setting~\cite{mei_lattice_2000}
+\begin{align}
+  F^{*}_{i}\left(x^{(j)}_{0}, v^{(j)}_{i}, t\right)
+  &= F^{*}_{i}\left(x^{(j)}_{1},  v^{(j)}_{i}, t\right) \\
+  F^{*}_{i}\left(X^{(j)}_{N_{j}}, v^{(j)}_{i}, t\right)
+  &= F^{*}_{i}\left(X^{(j)}_{N_{j} - 1} - 1, v^{(j)}_{i}, t\right)
+\end{align}
+after the collision step.
 
 
 
