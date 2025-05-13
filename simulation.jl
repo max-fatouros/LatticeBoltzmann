@@ -353,15 +353,15 @@ function get_reynolds_number(
         throw(ErrorException("Simulation must have one source to define Reynolds number"))
     end
 
+    #!format: off
     return (
         (
             simulation.sources[1].speed
-            *
-            size(simulation.mass_densities, dimension)
+            * size(simulation.mass_densities, dimension)
         )
-        /
-        get_viscosity(simulation)
+        / get_viscosity(simulation)
     )
+    #!format: on
 end
 
 
