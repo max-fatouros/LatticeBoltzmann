@@ -168,8 +168,10 @@ the remaining collision steps are unchanged.
 
 
 \subsubsection{No-Bounce}
-No-bounce boundary conditions are used at the outlets of our model, where we want any density-flow to disappear without reentering the other side of the lattice like they do with the periodic conditions.
-There are some more advanced methods to set a boundary to an arbitrary velocity value (including zero), that could be used in our case, such as the Zou-He boundary conditions~\cite{zou_pressure_1997}
+No-bounce boundary conditions are used at the boundaries of our lattice, where we want any density-flow to disappear without reentering the other side of the lattice like they do with only the the periodic conditions in place.
+These boundary condition are implemented in addition to the periodic conditions.
+
+There are some advanced methods to set a boundary to an arbitrary velocity value (including zero), such as the Zou-He boundary conditions~\cite{zou_pressure_1997}
 However, in our case we are only concerned with having the flow disappear at the outlet, and so this can effectively be done by setting the derivative of the density function at the outlet to zero.
 This is done simply by setting~\cite{mei_lattice_2000}
 \begin{align}
