@@ -40,6 +40,10 @@ struct Simulation{A,B,C}
     parameters::Parameters
 end
 
+function Base.display(simulation::Simulation)
+    @show typeof(simulation)
+end
+
 function Simulation{dimensions,velocities}() where {dimensions,velocities}
     return Simulation{
         dimensions,
