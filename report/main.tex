@@ -186,10 +186,17 @@ after the collision step.
 
 \section{Method}
 The code for this simulation was written in Julia.
+The update step is ran with multiple threads, with each thread handling one hyperplane of the lattice for the calculation of $\rho$, $\mathbf u$, $F^{\textnormal{eq}}$, and $F^{*}$.
+For the streaming step however, the each thread handles streaming in one discrete velocity direction $i$.
+
+The domain decomposition was done in this way so that each thread handled independent parts of the lattice, and so that no stitching of domain boundaries was required afterwards.
+
 
 The number of spatial dimensions $N$ and the number of discrete velocities $M$ are often characterized by a naming scheme as DNQM. Therefore, a system in 2 dimensions with 9 discrete velocities is denoted as D2Q9.
 
 In this paper, the D2Q9 and D3Q15 methods were implemented.
+
+Both methods set $\Delta t = \Delta x = 1$
 
 \subsubsection{D2Q9 Model}
 The D2Q9 models defines the velocities $\mathbf v_{i}$ as shown in~\Cref{fig:velocity-d2q9}.
