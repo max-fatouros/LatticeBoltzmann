@@ -9,12 +9,15 @@ function single_sphere_scene()
         1000,
         # 100_000,
     )
+
     add_sphere!(
         simulation;
         position=(50, 50),
         radius=25,
     )
-    return animate_speeds!(simulation)
+
+    add_source!(simulation, (5, :), 1, 0.4)
+    return simulation
 end
 
 function make_velocity_plots()
