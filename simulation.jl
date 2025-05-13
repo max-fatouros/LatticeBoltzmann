@@ -333,6 +333,14 @@ function get_viscosity(simulation::Simulation)
            ) * get_speeed_of_sound(simulation)^2 * simulation.delta_t
 end
 
+
+function set_viscosity!(simulation::Simulation, value)
+    simulation.parameters.characteristic_time = (
+        (value / ((get_speeed_of_sound(simulation)^2) * simulation.delta_t))
+        + 0.5
+    )
+end
+
 function get_reynolds_number(
     simulation::Simulation;
     dimension=2,
@@ -355,6 +363,29 @@ function get_reynolds_number(
         get_viscosity(simulation)
     )
 end
+
+
+function set_reynolds_number!(
+    simulation::Simulation,
+    value;
+    dimension=2,
+)
+    viscosity = (
+        (
+            simulation.sources[1].speed
+            * size(simulation.mass_densities, dimension)
+        )
+        / value
+    )
+    set_viscosity!(simulation, viscosity)
+    return
+end
+
+
+
+
+
+
 
 # TODO: make this multithreaded
 function set_sources!(simulation::Simulation)
