@@ -176,10 +176,13 @@ function plot_objects(
 end
 
 # TODO: pass plot function
-function animate_speeds!(
-    simulation::Simulation;
+function animate!(
+    simulation::Simulation,
+    plot_function;
+    steps=100,
     filename="animation.mp4",
     ax=nothing,
+    show_every=10,
     kwargs...,
 )
     GLMakie.activate!(; float=true)
@@ -193,7 +196,7 @@ function animate_speeds!(
     end
 
     @lift(
-        plot_speeds(
+        plot_function(
             $sim;
             ax=ax,
             kwargs...,
@@ -204,10 +207,10 @@ function animate_speeds!(
     record(
         fig,
         filename,
-        1:(simulation.parameters.time_steps÷100),
+        1:(steps÷show_every),
     ) do t
         @show t
-        for _ ∈ 1:100
+        for _ ∈ 1:show_every
             multithreaded_update!(sim[])
         end
         # next!(prog)
@@ -218,22 +221,42 @@ function animate_speeds!(
 end
 
 # TODO: pass plot function
-function animate_speeds_with_slider(simulations::Vector{Simulation})
+function animate_with_slider!(
+    simulation::Simulation,
+    plot_function;
+    steps=100,
+    ax=nothing,
+)
     GLMakie.activate!(; float=true)
+
     fig = Figure()
+    if typeof(simulation) <: SimulationD2
+        ax = CairoMakie.Axis(fig[1, 1]; aspect=DataAspect())
+    elseif typeof(simulation) <: SimulationD3
+        ax = Axis3(fig[1, 1]; aspect=:data)
+    end
     slider = Slider(
         fig[2, 1];
-        range=1:length(simulations),
+        range=1:steps,
     )
     index = lift(slider.value) do t
         return t
     end
 
-    ax = Axis(fig[1, 1])
-    @lift(plot_speeds(
-        simulations[$index],
-        ax=ax,
-    ))
+    simulations = []
+    prog = Progress(steps)
+    for i ∈ 1:steps
+        next!(prog)
+        push!(simulations, deepcopy(simulation))
+        update!(simulation)
+    end
+
+    @lift(
+        plot_function(
+            simulations[$index],
+            ax=ax,
+        )
+    )
     display(fig)
     return
 end
@@ -241,6 +264,7 @@ end
 function animate_live!(
     simulation,
     plot_function;
+    steps=nothing,
     show_every=100,
     kwargs...,
 )
@@ -263,13 +287,15 @@ function animate_live!(
 
     display(fig)
     resize_to_layout!(fig)
-    for i ∈ 1:simulation.parameters.time_steps
+    i = 0
+    while isnothing(steps) || i < steps
         update!(sim[])
         if (i % show_every) == 0
             notify(sim)
             @info "frame $i"
         end
         sleep(1e-3)
+        i += 1
     end
     return fig
 end

@@ -20,9 +20,9 @@ struct Source{N}
 end
 
 # to avoid making the Simulation struct mutable
-mutable struct Parameters
-    characteristic_time::Float64
-    time_steps::Int
+Base.@kwdef mutable struct Parameters
+    characteristic_time::Float64 = 1.0
+    time_step::Int = 0
 end
 
 struct Simulation{A,B,C}
@@ -55,7 +55,6 @@ const SimulationD3{velocities} = Simulation{3,4,velocities}
 const SimulationD3Q15 = SimulationD3{15}
 
 function SimulationD2Q9(
-    time_steps;
     divisions=(400, 100),
 )
     velocity_distribution = ones(
@@ -109,8 +108,6 @@ function SimulationD2Q9(
     delta_x = 1
     lattice_speed_squared = (delta_x / delta_t)^2
 
-    characteristic_time = 1
-
     object_mask = zeros(
         Bool,
         divisions...,
@@ -132,10 +129,7 @@ function SimulationD2Q9(
         delta_t,
         object_mask,
         [],
-        Parameters(
-            characteristic_time,
-            time_steps,
-        ),
+        Parameters(),
     )
 
     reset!(simulation)
@@ -143,7 +137,6 @@ function SimulationD2Q9(
 end
 
 function SimulationD3Q15(
-    time_steps;
     divisions=(200, 100, 100),
 )
     velocity_distribution = ones(
@@ -211,8 +204,6 @@ function SimulationD3Q15(
     delta_x = 1
     lattice_speed_squared = (delta_x / delta_t)^2
 
-    characteristic_time = 1
-
     object_mask = zeros(
         Bool,
         divisions...,
@@ -236,10 +227,7 @@ function SimulationD3Q15(
         delta_t,
         object_mask,
         [],
-        Parameters(
-            characteristic_time,
-            time_steps,
-        ),
+        Parameters(),
     )
 
     reset!(simulation)
@@ -282,6 +270,7 @@ function reset!(simulation::SimulationD2Q9)
     simulation.velocity_distribution .= velocity_distribution
     simulation.mass_densities .= mass_densities
     simulation.momentum_densities .= momentum_densities
+    simulation.parameters.time_step = 0
 
     @info "reset $(typeof(simulation))"
     @info "threads: $(Threads.nthreads())"
@@ -323,6 +312,7 @@ function reset!(simulation::SimulationD3Q15)
     simulation.velocity_distribution .= velocity_distribution
     simulation.mass_densities .= mass_densities
     simulation.momentum_densities .= momentum_densities
+    simulation.parameters.time_step = 0
 
     @info "reset $(typeof(simulation))"
     @info "threads: $(Threads.nthreads())"
@@ -916,27 +906,25 @@ function update!(
         step! = multithreaded_update!
     end
 
+    simulation.parameters.time_step += 1
+
     step!(simulation)
     return
 end
 
 function run!(
     simulation::Simulation;
+    steps=100,
     prog=nothing,
-    save_every=100,
+    yield=false,
 )
     prog = something(
         prog,
-        Progress(simulation.parameters.time_steps),
+        Progress(steps),
     )
-    simulations::Vector{Simulation} = []
-
-    for (i, _) ∈ enumerate(1:simulation.parameters.time_steps)
+    for i ∈ 1:steps
         next!(prog)
         update!(simulation)
-        if i % save_every == 0
-            push!(simulations, deepcopy(simulation))
-        end
     end
-    return simulations
+    return
 end
