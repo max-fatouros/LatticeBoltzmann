@@ -142,11 +142,24 @@ The possible boundary conditions we consider in our model are
 
 These boundary conditions are defined below.
 
-The edges of the lattice can have either periodic or no-bounce boundary conditions, the objects inserted in the simulation always have bounce-back boundary conditions.
+% The edges of the lattice can have either periodic or no-bounce boundary conditions, the objects inserted in the simulation always have bounce-back boundary conditions.
 
 \subsubsection{Periodic}
+As usual, periodic boundary conditions can be ensured by taking the new lattice position modulo the number of lattice points.
+We can modify the streaming step in each direction j such that
+\begin{equation}
+  F_{i}\left((\mathbf x_{j} + \Delta t\mathbf v_{ij})\bmod \mathbf X_{j}, \mathbf v_{ij}, t + \Delta t\right)
+  = F^{*}(\mathbf x_{j}, \mathbf v_{ij}, t)
+\end{equation}
+where $\mathbf X_{j}$ is the number of lattice points (the size of the lattice) in the $j$th dimension.
+
+
 \subsubsection{Bounce-Back}
+Bounce-back boundary conditions are used for the surfaces of objects in the simulations.
+
 \subsubsection{No-Bounce}
+No-bounce boundary conditions are used for the lattice boundaries of our model.
+
 
 
 \section{Method}
