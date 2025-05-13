@@ -109,7 +109,7 @@ function SimulationD2Q9(
     delta_x = 1
     lattice_speed_squared = (delta_x / delta_t)^2
 
-    characteristic_time = 0.6
+    characteristic_time = 1
 
     object_mask = zeros(
         Bool,
@@ -211,7 +211,7 @@ function SimulationD3Q15(
     delta_x = 1
     lattice_speed_squared = (delta_x / delta_t)^2
 
-    characteristic_time = 0.6
+    characteristic_time = 1
 
     object_mask = zeros(
         Bool,
