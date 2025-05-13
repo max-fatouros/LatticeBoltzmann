@@ -114,12 +114,12 @@ We can then \emph{collide} the particles, to move them one step closer to their 
     - F(\mathbf x, \mathbf v_{i}, t)
   \right]
 \end{equation}
-$\tau$ is defined as the characteristic time of the simulation, and is parameter we vary to influence the viscosity of the model, defined as~\cite{mei_lattice_2000}
+$\tau$ is defined as the characteristic time of the simulation, and is a parameter we vary to influence the viscosity of the model, defined as~\cite{mei_lattice_2000}
 \begin{equation}
   \nu = (\tau - 0.5)c_{s}^{2} \Delta t
 \end{equation}
 
-after \emph{colliding}, we \emph{stream} the particles, moving each density bin $F_{i}(\mathbf x, \mathbf v_{i}, t)$ in the direction of its velocity via
+after \emph{colliding}, we \emph{stream} the particles, moving the position components of each density bin $F_{i}(\mathbf x, \mathbf v_{i}, t)$ in the direction of its velocity and stepping forward in time via
 \begin{equation}
   F_{i}(\mathbf x + \Delta t\mathbf v_{i}, \mathbf v_{i}, t + \Delta t)
   = F^{*}(\mathbf x, \mathbf v_{i}, t)
