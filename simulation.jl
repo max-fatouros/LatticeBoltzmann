@@ -362,6 +362,7 @@ function get_reynolds_number(
     )
 end
 
+# TODO: make this multithreaded
 function set_sources!(simulation::Simulation)
     for source ∈ simulation.sources
         @. simulation.momentum_densities[source.ranges..., source.dimension] =
