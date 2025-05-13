@@ -632,8 +632,6 @@ function stream!(simulation::SimulationD3)
 end
 
 function singlethreaded_update!(simulation::SimulationD2)
-    set_no_bounce_boundaries!(simulation)
-
     velocities_in_objects = get_velocities_in_objects(simulation)
 
     compute_mass_densities!(simulation)
@@ -643,18 +641,16 @@ function singlethreaded_update!(simulation::SimulationD2)
     compute_equilibrium_distribution!(simulation)
 
     collide!(simulation)
+    set_no_bounce_boundaries!(simulation)
 
     simulation.velocity_distribution[simulation.object_mask, :] = velocities_in_objects
     simulation.momentum_densities[simulation.object_mask, :] .= 0
 
     stream!(simulation)
-
     return
 end
 
 function singlethreaded_update!(simulation::SimulationD3)
-    set_no_bounce_boundaries!(simulation)
-
     velocities_in_objects = get_velocities_in_objects(simulation)
 
     compute_mass_densities!(simulation)
@@ -663,6 +659,7 @@ function singlethreaded_update!(simulation::SimulationD3)
     compute_equilibrium_distribution!(simulation)
 
     collide!(simulation)
+    set_no_bounce_boundaries!(simulation)
 
     simulation.velocity_distribution[simulation.object_mask, :] = velocities_in_objects
     simulation.momentum_densities[simulation.object_mask, :] .= 0
@@ -845,8 +842,6 @@ end
 end
 
 function multithreaded_update!(simulation::SimulationD2)
-    set_no_bounce_boundaries!(simulation)
-
     velocities_in_objects = get_velocities_in_objects(simulation)
 
     threads = Threads.nthreads()
@@ -869,6 +864,8 @@ function multithreaded_update!(simulation::SimulationD2)
         collide!(simulation, chunk_start, chunk_end)
     end
 
+    set_no_bounce_boundaries!(simulation)
+
     simulation.velocity_distribution[simulation.object_mask, :] = velocities_in_objects
     simulation.momentum_densities[simulation.object_mask, :] .= 0
 
@@ -878,12 +875,9 @@ function multithreaded_update!(simulation::SimulationD2)
 end
 
 function multithreaded_update!(simulation::SimulationD3)
-    set_no_bounce_boundaries!(simulation)
-
     velocities_in_objects = get_velocities_in_objects(simulation)
 
     threads = Threads.nthreads()
-
     dimension_size = size(simulation.velocity_distribution)[3]
     chunksize = div(dimension_size, threads, RoundUp)
 
@@ -902,6 +896,7 @@ function multithreaded_update!(simulation::SimulationD3)
 
         collide!(simulation, chunk_start, chunk_end)
     end
+    set_no_bounce_boundaries!(simulation)
 
     simulation.velocity_distribution[simulation.object_mask, :] = velocities_in_objects
     simulation.momentum_densities[simulation.object_mask, :] .= 0
