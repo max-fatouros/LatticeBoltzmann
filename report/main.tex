@@ -196,11 +196,11 @@ The number of spatial dimensions $N$ and the number of discrete velocities $M$ a
 
 In this paper, the D2Q9 and D3Q15 methods were implemented.
 
-Both methods set $\Delta t = \Delta x = 1$
+Both methods set $\Delta t = 1 lt$ and $\Delta x = 1 lx$, where, using the unit-notation defined in~\cite{sukop_lattice_2006}, $[lt]$ denotes lattice time units and $[lx]$ denotes lattice space units.
 
-\subsubsection{D2Q9 Model}
+\subsection{D2Q9 Model}
 The D2Q9 models defines the velocities $\mathbf v_{i}$ as shown in~\Cref{fig:velocity-d2q9}.
-\begin{figure}[h]
+\begin{figure}[h!]
     \centering
     \includegraphics[width=0.5\textwidth]{velocities_d2q9}
     \caption{The velocities in the D2Q9 model.}
@@ -216,7 +216,7 @@ The weights associated with these velocities are~\cite{bottcher_computational_20
       1/36 & i \in 6,\ldots,9 \\
    \end{cases}
 \]
-\subsubsection{D3Q15 Model}
+\subsection{D3Q15 Model}
 The D3Q15 model defines the velocities $\mathbf e_{i}$ as shown in~\Cref{fig:velocity-d3q15}.
 
 The weights associated with these velocities are~\cite{arumuga_perumal_review_2015}
@@ -230,7 +230,7 @@ The weights associated with these velocities are~\cite{arumuga_perumal_review_20
    \end{cases}
 \]
 
-\begin{figure}[h]
+\begin{figure}[h!]
     \centering
     \includegraphics[width=\textwidth]{velocities_d3q15}
     \caption{The velocities in the D3Q15 model. The $v_{13}$ vector for example has a value of $[-1, 1, -1]$ when read from this plot.}
@@ -238,6 +238,54 @@ The weights associated with these velocities are~\cite{arumuga_perumal_review_20
 \end{figure}
 
 \section{Results}
+
+\subsection{Speed of Sound}
+As noted in \Cref{sec:introduction::lattice-boltzmann-method}, the speed of sound in the lattice is defined as
+\[
+  c_{s} = \frac{1}{\sqrt{3}} \frac{\Delta x}{\Delta t}
+\]
+
+Since, for our models, $\Delta x = 1 lx$ and $\Delta t = 1 lt$, then $c_{s} = \frac{1}{\sqrt{3}} \frac{lx}{lt} \approx 0.577 \frac{lx}{lt}$.
+
+For our first test, we'd like to see if a pulse in the lattice propagates at this speed.
+\Cref{fig:speed-fit} shows fits to the peak of a pulse as is travels through the lattice for the 2D and 3D models. We generate a pulse by adding a source to the model for one update step, then removing it for the rest of the simulation.
+The plots show results over 100 time steps, the numerical results given below were given over 500 time steps.
+
+
+\begin{figure}[h!]
+    \centering
+
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{speed_fit_2d}
+        % \caption{}
+        \label{fig:speed-fit-2d}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{speed_fit_3d}
+        % \caption{}
+        \label{fig:speed-fit-3d}
+    \end{subfigure}
+    \caption{The peak values and a fit to a pulse as it travels along the x-direction.}
+    \label{fig:speed-fit}
+
+\end{figure}
+
+For the 2D model, $c_{s}$ was found to be
+\[
+  c_{s} = 0.584 \pm 0.43
+\]
+
+And for the 3D model,
+\[
+  c_{x} = 0.584 \pm 0.42
+\]
+
+These both certainly agree within their uncertainties with the set value of $c_{s}= \aprox 0.577$. However, the uncertainties seem unreasonably large. This seems to be in part due to the discretization error of the positions, as can be seen in~\Cref{fig:speed-fit-2d,fit:speed-fit-3d}.
+This discretization error average out, but will cumulatively contribute to the uncertainty, giving us the acceptable mean, but large uncertainties that we see.
+I've left more significant figures than usual in the mean values as a result of this.
 
 \section{Conclusion}
 
