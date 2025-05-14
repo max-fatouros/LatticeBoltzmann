@@ -53,7 +53,7 @@ function plot(
         fig = Figure()
         config.ax = CairoMakie.Axis(
             fig[1, 1];
-            aspect=DataAspect(),
+            # aspect=DataAspect(),
             xgridvisible=false,
             ygridvisible=false,
         )
@@ -69,6 +69,9 @@ function plot(
     values = @lift begin
         sim = $simulation
         values = get_property(sim)
+        if :curl == config.property
+            values = log.(1 .+ abs.(values))
+        end
         values[sim.object_mask] .= NaN
         return values
     end
