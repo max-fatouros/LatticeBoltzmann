@@ -20,7 +20,7 @@ function set_theme()
 end
 set_theme()
 
-function single_sphere_scene(reynolds_number=300)
+function single_disk_scene(reynolds_number=300)
     simulation = SimulationD2Q9()
 
     add_sphere!(
@@ -33,6 +33,24 @@ function single_sphere_scene(reynolds_number=300)
     set_reynolds_number!(simulation, reynolds_number)
     return simulation
 end
+
+
+
+function single_sphere_scene(reynolds_number=300)
+    simulation = SimulationD3Q15()
+
+    add_sphere!(
+        simulation;
+        position=(50, 50, 50),
+        radius=25,
+    )
+
+    add_source!(simulation, (5, :, :), 1, 0.2)
+    set_reynolds_number!(simulation, reynolds_number)
+    return simulation
+end
+
+
 
 function make_velocity_plots()
     with_theme(
@@ -156,6 +174,15 @@ function plot_all(sim::SimulationD2)
     fig = Figure()
 
     axes = [Makie.Axis(fig[i, 1]) for i ∈ 1:3]
+    configs = [
+        Config(property, ax=axes[i])
+        for (i, property)
+        in enumerate((
+            :speed,
+            :curl,
+            :velocity
+        ))
+    ]
 
     plot(sim, Config(:speed; ax=axes[1]))
     plot(sim, Config(:curl; ax=axes[2]))
@@ -169,11 +196,25 @@ function plot_all(sim::SimulationD2)
 
     for i ∈ 1:length(fig.layout.rowsizes)
         rowsize!(fig.layout, i, Aspect(1, get_aspect(sim)))
+        Box(fig[i, 2]; color=:gray90)
+        Label(
+            fig[i, 2],
+            "$(configs[i].property)";
+            rotation=pi / 2,
+            tellheight=false,
+        )
     end
     axes[1].xticklabelsvisible = false
     axes[2].xticklabelsvisible = false
 
+    axes[2].ylabel = "y [lx]"
+    axes[3].xlabel = "x [lx]"
+
     resize_to_layout!(fig)
+
+    path = joinpath(media_dir, "all_2d.png")
+    save(path, fig)
+
 
     return fig
 end
