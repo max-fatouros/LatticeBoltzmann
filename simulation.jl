@@ -416,6 +416,30 @@ function get_speeds(simulation::SimulationD3)
     return speeds
 end
 
+# TODO: devide by delta-x
+function derivative(matrix, direction)
+    direction = collect(direction)
+    #!format: off
+    return (
+        circshift(matrix, direction)
+        - circshift(matrix, -direction)
+    )
+    #!format: on
+end
+
+function get_curls(simulation::SimulationD2)
+    #!format: off
+    velocities = (
+        simulation.momentum_densities
+        ./ simulation.mass_densities
+    )
+    return (
+        derivative(velocities[:,:,2], (1, 0))
+        - derivative(velocities[:,:,1], (0, 1))
+    )
+    #!format: on
+end
+
 function get_velocities_in_objects(simulation::SimulationD2Q9)
     # https://github.com/pmocz/latticeboltzmann-python/blob/main/latticeboltzmann.py
     velocities_in_objects = simulation.velocity_distribution[simulation.object_mask, :]
