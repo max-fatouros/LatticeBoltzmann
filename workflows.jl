@@ -20,7 +20,7 @@ function set_theme()
 end
 set_theme()
 
-function single_sphere_scene(reynolds_number=100)
+function single_sphere_scene(reynolds_number=300)
     simulation = SimulationD2Q9()
 
     add_sphere!(
@@ -29,7 +29,7 @@ function single_sphere_scene(reynolds_number=100)
         radius=25,
     )
 
-    add_source!(simulation, (5, :), 1, 0.4)
+    add_source!(simulation, (5, :), 1, 0.2)
     set_reynolds_number!(simulation, reynolds_number)
     return simulation
 end
