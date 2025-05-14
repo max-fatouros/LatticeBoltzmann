@@ -7,9 +7,22 @@ include("simulation.jl")
 GLMakie.activate!(; float=true)
 
 function plot(
-    simulation::Observable{<:SimulationD2};
+    property=:speed;
     ax=nothing,
-    property=:speed,
+    kwargs...,
+)
+    return (simulation; ax=ax, kwargs...) -> plot(
+        simulation,
+        property;
+        ax=ax,
+        kwargs...,
+    )
+end
+
+function plot(
+    simulation::Observable{<:SimulationD2},
+    property=:speed;
+    ax=nothing,
     kwargs...,
 )
     fig = nothing
@@ -52,9 +65,9 @@ function plot(
 end
 
 function plot(
-    simulation::Observable{<:SimulationD3};
+    simulation::Observable{<:SimulationD3},
+    property=:speed;
     ax=nothing,
-    property=:speed,
     kwargs...,
 )
     fig = nothing
@@ -94,14 +107,14 @@ function plot(
 end
 
 function plot(
-    simulation::Simulation;
+    simulation::Simulation,
+    property=:speed;
     ax=nothing,
-    property=:speed,
     kwargs...,
 )
     return plot(
-        Observable(simulation);
-        property=property,
+        Observable(simulation),
+        property;
         ax=ax,
         kwargs...,
     )
@@ -287,28 +300,34 @@ end
 
 function animate_live!(
     simulation::Simulation;
-    property=:speed,
-    steps=nothing,
-    show_every=100,
+    plots=nothing,
+    # ax=nothing,
+    # property=:speed,
+    steps=100,
+    show_every=10,
     kwargs...,
 )
     GLMakie.activate!(; float=true)
     fig = Figure()
     sim = Observable(simulation)
 
-    ax = nothing
-    if typeof(simulation) <: SimulationD2
-        ax = CairoMakie.Axis(fig[1, 1]; aspect=DataAspect())
-    elseif typeof(simulation) <: SimulationD3
-        ax = Axis3(fig[1, 1]; aspect=:data)
+    if isnothing(plots)
+        plots = [plot()]
     end
 
-    plot(
-        sim;
-        property=property,
-        ax=ax,
-        kwargs...,
-    )
+    for index ∈ CartesianIndices(plots)
+        tuple_index = Tuple(index)
+        if typeof(simulation) <: SimulationD2
+            ax = CairoMakie.Axis(fig[tuple_index[1], tuple_index[2]]; aspect=DataAspect())
+        elseif typeof(simulation) <: SimulationD3
+            ax = Axis3(fig[index]; aspect=:data)
+        end
+        # @show plots[index]
+
+        @lift(
+            plots[index]($sim; ax=ax)
+        )
+    end
 
     display(fig)
     resize_to_layout!(fig)
