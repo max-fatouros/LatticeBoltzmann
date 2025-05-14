@@ -373,6 +373,10 @@ function animate_live!(
         )
     end
 
+    for i in 1:length(fig.layout.rowsizes)
+        rowsize!(fig.layout, i, Aspect(1, get_aspect(simulation)))
+    end
+
     resize_to_layout!(fig)
     display(fig)
     i = 0
