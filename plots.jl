@@ -6,29 +6,35 @@ include("simulation.jl")
 
 GLMakie.activate!(; float=true)
 
-function plot(
+mutable struct Config
+    property::Any
+    ax::Any
+    kwargs::Any
+end
+
+function Config(
     property=:speed;
     ax=nothing,
     kwargs...,
 )
-    return (simulation; ax=ax, kwargs...) -> plot(
-        simulation,
-        property;
-        ax=ax,
-        kwargs...,
+    return Config(
+        property,
+        ax,
+        kwargs,
     )
 end
 
 function plot(
     simulation::Observable{<:SimulationD2},
-    property=:speed;
-    ax=nothing,
-    kwargs...,
+    config=nothing,
 )
+    if isnothing(config)
+        config = Config()
+    end
     fig = nothing
-    if isnothing(ax)
+    if isnothing(config.ax)
         fig = Figure()
-        ax = CairoMakie.Axis(
+        config.ax = CairoMakie.Axis(
             fig[1, 1];
             aspect=DataAspect(),
             xgridvisible=false,
@@ -37,9 +43,9 @@ function plot(
     end
 
     get_property = nothing
-    if :speed == property
+    if :speed == config.property
         get_property = get_speeds
-    elseif :curl == property
+    elseif :curl == config.property
         get_property = get_curls
     end
 
@@ -54,32 +60,33 @@ function plot(
         colormap=:viridis,
         nan_color=:black,
     )
-    kwargs = merge(defaults, kwargs)
+    config.kwargs = merge(defaults, config.kwargs)
 
     CairoMakie.image!(
-        ax,
+        config.ax,
         values;
-        kwargs...,
+        config.kwargs...,
     )
     return fig
 end
 
 function plot(
     simulation::Observable{<:SimulationD3},
-    property=:speed;
-    ax=nothing,
-    kwargs...,
+    config=nothing,
 )
+    if isnothing(config)
+        config = Config()
+    end
     fig = nothing
     if isnothing(ax)
         fig = Figure()
-        ax = Axis3(fig[1, 1]; aspect=:data)
+        config.ax = Axis3(fig[1, 1]; aspect=:data)
     end
 
     get_property = nothing
-    if :speed == property
+    if :speed == config.property
         get_property = get_speeds
-    elseif :curl == property
+    elseif :curl == config.property
         get_property = get_curls
     end
 
@@ -95,12 +102,12 @@ function plot(
         colormap=:viridis,
         nan_color=:black,
     )
-    kwargs = merge(defaults, kwargs)
+    config.kwargs = merge(defaults, config.kwargs)
 
     GLMakie.volume!(
-        ax,
+        config.ax,
         values;
-        kwargs...,
+        config.kwargs...,
     )
 
     return fig
@@ -108,15 +115,11 @@ end
 
 function plot(
     simulation::Simulation,
-    property=:speed;
-    ax=nothing,
-    kwargs...,
+    config=nothing,
 )
     return plot(
         Observable(simulation),
-        property;
-        ax=ax,
-        kwargs...,
+        config,
     )
 end
 
@@ -213,29 +216,28 @@ end
 # TODO: pass plot function
 function animate!(
     simulation::Simulation,
-    property=:speed;
+    config=nothing;
     steps=100,
     filename="animation.mp4",
-    ax=nothing,
     show_every=10,
-    kwargs...,
 )
+    if isnothing(config)
+        config = Config()
+    end
+
     GLMakie.activate!(; float=true)
     fig = Figure()
     sim = Observable(simulation)
-    ax = nothing
     if typeof(simulation) <: SimulationD2
-        ax = CairoMakie.Axis(fig[1, 1]; aspect=DataAspect())
+        config.ax = CairoMakie.Axis(fig[1, 1]; aspect=DataAspect())
     elseif typeof(simulation) <: SimulationD3
-        ax = Axis3(fig[1, 1]; aspect=:data)
+        config.ax = Axis3(fig[1, 1]; aspect=:data)
     end
 
     @lift(
         plot(
-            $sim;
-            ax=ax,
-            property=property,
-            kwargs...,
+            $sim,
+            config,
         )
     )
     resize_to_layout!(fig)
@@ -260,17 +262,21 @@ end
 # TODO: pass plot function
 function animate_with_slider!(
     simulation::Simulation,
-    plot_function;
+    config=nothing;
+    # plot_function;
     steps=100,
-    ax=nothing,
+    # ax=nothing,
 )
+    if isnothing(config)
+        config = Config()
+    end
     GLMakie.activate!(; float=true)
 
     fig = Figure()
     if typeof(simulation) <: SimulationD2
-        ax = CairoMakie.Axis(fig[1, 1]; aspect=DataAspect())
+        config.ax = CairoMakie.Axis(fig[1, 1]; aspect=DataAspect())
     elseif typeof(simulation) <: SimulationD3
-        ax = Axis3(fig[1, 1]; aspect=:data)
+        config.ax = Axis3(fig[1, 1]; aspect=:data)
     end
     slider = Slider(
         fig[2, 1];
@@ -289,48 +295,69 @@ function animate_with_slider!(
     end
 
     @lift(
-        plot_function(
+        plot(
             simulations[$index],
-            ax=ax,
+            config,
         )
     )
     display(fig)
     return
 end
 
+get_axis(simulation::SimulationD2, fig_element) = (
+    Makie.Axis(
+    fig_element;
+    aspect=DataAspect(),
+)
+)
+get_axis(simulation::SimulationD3, fig_element) = (
+    Makie.Axis3(
+    fig_element;
+    aspect=:data,
+)
+)
+
 function animate_live!(
-    simulation::Simulation;
-    plots=nothing,
-    # ax=nothing,
-    # property=:speed,
+    simulation::Simulation,
+    configs=nothing;
     steps=100,
     show_every=10,
-    kwargs...,
 )
     GLMakie.activate!(; float=true)
     fig = Figure()
     sim = Observable(simulation)
 
-    if isnothing(plots)
-        plots = [plot()]
+    if isnothing(configs)
+        configs = Config()
     end
 
-    for index ∈ CartesianIndices(plots)
-        tuple_index = Tuple(index)
-        if typeof(simulation) <: SimulationD2
-            ax = CairoMakie.Axis(fig[tuple_index[1], tuple_index[2]]; aspect=DataAspect())
-        elseif typeof(simulation) <: SimulationD3
-            ax = Axis3(fig[index]; aspect=:data)
-        end
-        # @show plots[index]
+    if !(typeof(configs) <: Array)
+        configs = [configs;;]
+    end
+
+    for index ∈ CartesianIndices(configs)
+        configs[index].ax = get_axis(simulation, fig[Tuple(index)...])
+        # rowgap!(fig[Tuple(index)...], 1)
 
         @lift(
-            plots[index]($sim; ax=ax)
+            plot(
+                $sim,
+                configs[index],
+            )
+        )
+
+        right_grid_index = (Tuple(index) .+ (0, 1))
+        Box(fig[right_grid_index...]; color=:gray90)
+        Label(
+            fig[right_grid_index...],
+            "$(configs[index].property)";
+            rotation=pi / 2,
+            tellheight=false,
         )
     end
 
-    display(fig)
     resize_to_layout!(fig)
+    display(fig)
     i = 0
     while isnothing(steps) || i < steps
         update!(sim[])
