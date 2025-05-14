@@ -24,27 +24,33 @@ function Config(
     )
 end
 
-
-
 get_axis(simulation::SimulationD2, fig_element) = (
     Makie.Axis(
-        fig_element;
-        aspect=DataAspect(),
-    )
+    fig_element;
+)
 )
 get_axis(simulation::SimulationD3, fig_element) = (
     Makie.Axis3(
-        fig_element;
-        aspect=:data,
-    )
+    fig_element;
+)
 )
 
-
+function get_aspect(simulation::SimulationD2)
+    sizes = size(simulation.mass_densities)
+    return sizes[2] / sizes[1]
+end
 
 function plot(
     simulation::Observable{<:SimulationD2},
     config=nothing,
+    kwargs...,
 )
+    defaults = (;
+        colormap=:viridis,
+        nan_color=:black,
+    )
+    config.kwargs = merge(defaults, config.kwargs)
+
     if isnothing(config)
         config = Config()
     end
@@ -53,7 +59,6 @@ function plot(
         fig = Figure()
         config.ax = CairoMakie.Axis(
             fig[1, 1];
-            # aspect=DataAspect(),
             xgridvisible=false,
             ygridvisible=false,
         )
@@ -70,18 +75,24 @@ function plot(
         sim = $simulation
         values = get_property(sim)
         if :curl == config.property
-            values = log.(1 .+ abs.(values))
+            negative_values = values .< 0
+            positive_values = values .>= 0
+            values[negative_values] .= -1
+            values[positive_values] .= 1
+            # values[abs.(values) .< 0.005] .= NaN
+            # values[abs.(values) .> 0.02] .= NaN
         end
         values[sim.object_mask] .= NaN
+
+        if !isnothing(fig)
+            rowsize!(fig.layout, 1, Aspect(1, get_aspect(sim)))
+        end
         return values
     end
 
-    defaults = (;
-        colormap=:viridis,
-        nan_color=:black,
-    )
-    config.kwargs = merge(defaults, config.kwargs)
-
+    if !isnothing(fig)
+        resize_to_layout!(fig)
+    end
     CairoMakie.image!(
         config.ax,
         values;
@@ -324,7 +335,6 @@ function animate_with_slider!(
     return
 end
 
-
 function animate_live!(
     simulation::Simulation,
     configs=nothing;
@@ -345,7 +355,6 @@ function animate_live!(
 
     for index ∈ CartesianIndices(configs)
         configs[index].ax = get_axis(simulation, fig[Tuple(index)...])
-        # rowgap!(fig[Tuple(index)...], 1)
 
         @lift(
             plot(
