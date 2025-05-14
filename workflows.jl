@@ -144,3 +144,29 @@ function plot_speed_of_sound_fit(dimensions=2)
     @show "fit_slope: $(parameters[2])"
     @show parameters[2] - 1 / sqrt(3)
 end
+function plot_all(sim::SimulationD2)
+    CairoMakie.activate!()
+    fig = Figure()
+
+    axes = [Makie.Axis(fig[i, 1]) for i ∈ 1:3]
+
+    plot(sim, Config(:speed; ax=axes[1]))
+    plot(sim, Config(:curl; ax=axes[2]))
+    plot_velocities(
+        sim;
+        ax=axes[3],
+        density=0.75,
+        arrow_size=10,
+        maxsteps=5000,
+    )
+
+    for i ∈ 1:length(fig.layout.rowsizes)
+        rowsize!(fig.layout, i, Aspect(1, get_aspect(sim)))
+    end
+    axes[1].xticklabelsvisible = false
+    axes[2].xticklabelsvisible = false
+
+    resize_to_layout!(fig)
+
+    return fig
+end
