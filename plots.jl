@@ -24,6 +24,23 @@ function Config(
     )
 end
 
+
+
+get_axis(simulation::SimulationD2, fig_element) = (
+    Makie.Axis(
+        fig_element;
+        aspect=DataAspect(),
+    )
+)
+get_axis(simulation::SimulationD3, fig_element) = (
+    Makie.Axis3(
+        fig_element;
+        aspect=:data,
+    )
+)
+
+
+
 function plot(
     simulation::Observable{<:SimulationD2},
     config=nothing,
@@ -304,18 +321,6 @@ function animate_with_slider!(
     return
 end
 
-get_axis(simulation::SimulationD2, fig_element) = (
-    Makie.Axis(
-    fig_element;
-    aspect=DataAspect(),
-)
-)
-get_axis(simulation::SimulationD3, fig_element) = (
-    Makie.Axis3(
-    fig_element;
-    aspect=:data,
-)
-)
 
 function animate_live!(
     simulation::Simulation,
