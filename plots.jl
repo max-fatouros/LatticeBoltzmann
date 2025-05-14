@@ -6,9 +6,10 @@ include("simulation.jl")
 
 GLMakie.activate!(; float=true)
 
-function plot_speeds(
+function plot(
     simulation::Observable{<:SimulationD2};
     ax=nothing,
+    property=:speed,
     kwargs...,
 )
     fig = nothing
@@ -22,11 +23,18 @@ function plot_speeds(
         )
     end
 
-    speeds = @lift begin
+    get_property = nothing
+    if :speed == property
+        get_property = get_speeds
+    elseif :curl == property
+        get_property = get_curls
+    end
+
+    values = @lift begin
         sim = $simulation
-        speeds = get_speeds(sim)
-        speeds[sim.object_mask] .= NaN
-        return speeds
+        values = get_property(sim)
+        values[sim.object_mask] .= NaN
+        return values
     end
 
     defaults = (;
@@ -37,15 +45,16 @@ function plot_speeds(
 
     CairoMakie.image!(
         ax,
-        speeds;
+        values;
         kwargs...,
     )
     return fig
 end
 
-function plot_speeds(
+function plot(
     simulation::Observable{<:SimulationD3};
     ax=nothing,
+    property=:speed,
     kwargs...,
 )
     fig = nothing
@@ -54,11 +63,18 @@ function plot_speeds(
         ax = Axis3(fig[1, 1]; aspect=:data)
     end
 
-    speeds = @lift begin
+    get_property = nothing
+    if :speed == property
+        get_property = get_speeds
+    elseif :curl == property
+        get_property = get_curls
+    end
+
+    values = @lift begin
         sim = $simulation
-        speeds = get_speeds(sim)
-        speeds[sim.object_mask] .= NaN
-        return speeds
+        values = get_property(sim)
+        values[sim.object_mask] .= NaN
+        return values
     end
 
     defaults = (;
@@ -70,19 +86,25 @@ function plot_speeds(
 
     GLMakie.volume!(
         ax,
-        speeds;
+        values;
         kwargs...,
     )
 
     return fig
 end
 
-function plot_speeds(
+function plot(
     simulation::Simulation;
     ax=nothing,
+    property=:speed,
     kwargs...,
 )
-    return plot_speeds(Observable(simulation); ax=ax, kwargs...)
+    return plot(
+        Observable(simulation);
+        property=property,
+        ax=ax,
+        kwargs...,
+    )
 end
 
 function plot_velocities(
@@ -178,7 +200,7 @@ end
 # TODO: pass plot function
 function animate!(
     simulation::Simulation,
-    plot_function;
+    property=:speed;
     steps=100,
     filename="animation.mp4",
     ax=nothing,
@@ -196,9 +218,10 @@ function animate!(
     end
 
     @lift(
-        plot_function(
+        plot(
             $sim;
             ax=ax,
+            property=property,
             kwargs...,
         )
     )
@@ -263,8 +286,8 @@ function animate_with_slider!(
 end
 
 function animate_live!(
-    simulation,
-    plot_function;
+    simulation::Simulation;
+    property=:speed,
     steps=nothing,
     show_every=100,
     kwargs...,
@@ -280,8 +303,9 @@ function animate_live!(
         ax = Axis3(fig[1, 1]; aspect=:data)
     end
 
-    plot_function(
+    plot(
         sim;
+        property=property,
         ax=ax,
         kwargs...,
     )
