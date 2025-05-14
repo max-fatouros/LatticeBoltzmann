@@ -421,8 +421,11 @@ function derivative(matrix, direction)
     direction = collect(direction)
     #!format: off
     return (
-        circshift(matrix, direction)
-        - circshift(matrix, -direction)
+        (
+            circshift(matrix, direction)
+            - circshift(matrix, -direction)
+        )
+        ./ 2
     )
     #!format: on
 end
