@@ -144,6 +144,13 @@ function plot_speed_of_sound_fit(dimensions=2)
     @show "fit_slope: $(parameters[2])"
     @show parameters[2] - 1 / sqrt(3)
 end
+
+# function plot_karman_vortex()
+#     sim = single_sphere_scene()
+#     fig = Figure()
+#     plot(sim)
+# end
+
 function plot_all(sim::SimulationD2)
     CairoMakie.activate!()
     fig = Figure()
