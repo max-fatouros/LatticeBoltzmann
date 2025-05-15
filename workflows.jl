@@ -198,7 +198,7 @@ function plot_vortex_2d()
         Makie.lines!(ax, absolute_vorticities; label="$reynolds_number")
     end
 
-    save(final_simulations, "vortex_simulations")
+    save(final_simulations, "vortex_simulations_2d")
 
     axislegend(ax)
     ax.xlabel = L"time $[lt]$"
@@ -250,7 +250,7 @@ function plot_vortex_3d()
         Makie.lines!(ax, absolute_vorticities; label="$reynolds_number")
     end
 
-    save(final_simulations, "vortex_simulations")
+    save(final_simulations, "vortex_simulations_3d")
 
     axislegend(ax)
     ax.xlabel = L"time $[lt]$"
