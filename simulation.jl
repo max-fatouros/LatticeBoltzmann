@@ -1,6 +1,7 @@
 using StaticArrays
 using LinearAlgebra
 using ProgressMeter
+using Serialization
 
 # Requires two static conditionals
 # https://discourse.julialang.org/t/is-importing-module-is-allowed-inside-static/28975/2
@@ -12,6 +13,9 @@ end
 end
 
 Range = Union{Int,UnitRange,Colon}
+
+const simulations_dir::String = "simulations"
+mkpath(simulations_dir)
 
 struct Source{N}
     ranges::SVector{N,Range}
@@ -982,4 +986,19 @@ function run!(
         update!(simulation)
     end
     return
+end
+
+
+function save(simulation::Simulation, filename="simulation")
+    path = joinpath(simulations_dir, "$(filename).bin")
+    open(path, "w") do f
+        serialize(f, simulation)
+    end
+    @info "saved to $path"
+end
+function load(filename="simulation")
+    open(joinpath(simulations_dir, "$(filename).bin"), "r") do f
+        sim = deserialize(f)
+    end
+    return sim
 end
