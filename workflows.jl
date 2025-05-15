@@ -259,7 +259,7 @@ function plot_vortex_3d()
     return fig
 end
 
-function plot_all(sim::SimulationD2, filename="all.png")
+function plot_all(sim::SimulationD2, filename)
     CairoMakie.activate!()
     fig = Figure()
 
