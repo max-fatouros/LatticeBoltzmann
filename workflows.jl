@@ -6,6 +6,8 @@ animations_dir = "animations"
 mkpath(media_dir)
 mkpath(animations_dir)
 
+CairoMakie.activate!()
+
 """
 wrap Makie.set_theme! so that revise updates this.
 """
@@ -233,6 +235,38 @@ function plot_all(sim::SimulationD2)
 
     path = joinpath(media_dir, "all_2d.png")
     save(path, fig)
+
+    return fig
+end
+
+function plot_vortices(filename="vortex_simulations")
+    CairoMakie.activate!()
+    sims = load(filename)
+
+    fig = Figure()
+    for (i, sim) ∈ enumerate(sims)
+        ax = Makie.Axis(fig[i, 1])
+        plot(sim, Config(:speed; ax=ax))
+        rowsize!(fig.layout, i, Aspect(1, get_aspect(sim)))
+        if i <= (length(sims) - 1)
+            ax.xticklabelsvisible = false
+        else
+            ax.xlabel = "x [lx]"
+        end
+        ax.ylabel = "y [lx]"
+        Box(fig[i, 2]; color=:gray90)
+        Label(
+            fig[i, 2],
+            "$(round(Int, get_reynolds_number(sim)))";
+            rotation=pi / 2,
+            tellheight=false,
+        )
+    end
+
+    resize_to_layout!(fig)
+
+    path = joinpath(media_dir, "vortex_speeds_2d.png")
+    Makie.save(path, fig)
 
     return fig
 end
