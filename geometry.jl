@@ -96,12 +96,8 @@ function rotation_matrix(x_angle, y_angle, z_angle)
     return x_matrix * y_matrix * z_matrix
 end
 
-function add_point_cloud(
-    simulation,
-    filename;
-    position=nothing,
-    rotation=nothing,
-    side_length=10,
+function get_point_cloud(
+    filename,
 )
     point_cloud = nothing
     if occursin(".xyz", filename)
@@ -109,6 +105,16 @@ function add_point_cloud(
     elseif occursin(".tiff", filename)
         point_cloud = tiff_to_point_cloud(filename)
     end
+    return point_cloud
+end
+
+function add_point_cloud(
+    simulation,
+    point_cloud;
+    position=nothing,
+    rotation=nothing,
+    side_length=10,
+)
 
     # normalize
     max_point_cloud = maximum(point_cloud; dims=1)
