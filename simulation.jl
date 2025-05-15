@@ -997,6 +997,7 @@ function save(simulation::Simulation, filename="simulation")
     @info "saved to $path"
 end
 function load(filename="simulation")
+    sim = nothing
     open(joinpath(simulations_dir, "$(filename).bin"), "r") do f
         sim = deserialize(f)
     end
