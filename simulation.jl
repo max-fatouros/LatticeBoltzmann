@@ -337,11 +337,15 @@ function get_viscosity(simulation::Simulation)
            ) * get_speeed_of_sound(simulation)^2 * simulation.delta_t
 end
 
-get_forces(simulation::SimulationD2) =
-    2 .* (
-        sum(simulation.momentum_densities[:, :, 1][simulation.object_mask]),
-        sum(simulation.momentum_densities[:, :, 2][simulation.object_mask]),
+function get_forces(simulation::SimulationD2)
+    # HACK: Avoid lattice boundaries
+    object_mask = simulation.object_mask[2:end-1, 2:end-1]
+
+    return 2 .* (
+        sum(simulation.momentum_densities[2:end-1, 2:end-1, 1][object_mask]),
+        sum(simulation.momentum_densities[2:end-1, 2:end-1, 2][object_mask]),
     )
+end
 
 function set_viscosity!(simulation::Simulation, value)
     simulation.parameters.characteristic_time = (
