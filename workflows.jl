@@ -36,13 +36,13 @@ end
 
 
 
-function single_sphere_scene(reynolds_number=300)
-    simulation = SimulationD3Q15()
+function single_cylinder_scene(reynolds_number=60)
+    simulation = SimulationD3Q15((200, 50, 50))
 
-    add_sphere!(
+    add_cylinder!(
         simulation;
-        position=(50, 50, 50),
-        radius=25,
+        position=(25, 25, 25),
+        radius=12.5,
     )
 
     add_source!(simulation, (5, :, :), 1, 0.2)
