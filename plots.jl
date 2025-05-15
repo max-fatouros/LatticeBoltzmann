@@ -26,13 +26,14 @@ end
 
 get_axis(simulation::SimulationD2, fig_element) = (
     Makie.Axis(
-    fig_element;
-)
+        fig_element;
+    )
 )
 get_axis(simulation::SimulationD3, fig_element) = (
     Makie.Axis3(
-    fig_element;
-)
+        fig_element;
+        aspect=:data,
+    )
 )
 
 function get_aspect(simulation::SimulationD2)
