@@ -112,7 +112,11 @@ function plot(
     fig = nothing
     if isnothing(config.ax)
         fig = Figure()
-        config.ax = get_axis(simulation, fig[1,1])
+        config.ax = Makie.Axis3(
+            fig[1, 1];
+            xgridvisible=false,
+            ygridvisible=false,
+        )
     end
 
     get_property = nothing
@@ -125,7 +129,14 @@ function plot(
     values = @lift begin
         sim = $simulation
         values = get_property(sim)
-        values[sim.object_mask] .= NaN
+
+        # HACK: remove boundaries
+        object_mask = sim.object_mask[:, 2:end-1, 2:end-1]
+
+        values[:, 2:end-1, 2:end-1][object_mask] .= NaN
+
+
+
         return values
     end
 
@@ -140,6 +151,11 @@ function plot(
         config.ax,
         values;
         config.kwargs...,
+    )
+
+    plot_objects(
+        simulation,
+        ax=config.ax
     )
 
     return fig
@@ -230,14 +246,39 @@ function plot_objects(
     ax=nothing,
     kwargs...,
 )
+    GLMakie.activate!()
     fig = nothing
     if isnothing(ax)
         fig = Figure()
         ax = Axis3(fig[1, 1]; aspect=:data)
     end
+
+    mask = @lift begin
+        sim = $simulation
+        # HACK: remove boundaries
+        mask = zeros(
+            Bool,
+            size(sim.object_mask)...
+        )
+        mask .= 0
+        mask[sim.object_mask .== 1] .= 1
+        mask[:, :, 1] .= false
+        mask[:, :, end] .= false
+        mask[:, 1, :] .= false
+        mask[:, end, :] .= false
+
+        return mask
+    end
+
+
+
+
     GLMakie.volume!(
         ax,
-        @lift(identity($simulation.object_mask));
+        mask,
+        colormap=[:transparent, :black],
+        # nan_color=:transparent,
+        # @lift(identity($simulation.object_mask));
         kwargs...,
     )
     return fig
