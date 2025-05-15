@@ -1014,7 +1014,7 @@ function multithreaded_update!(simulation::SimulationD3)
     set_no_bounce_boundaries!(simulation)
 
     simulation.velocity_distribution[simulation.object_mask, :] = velocities_in_objects
-    simulation.momentum_densities[simulation.object_mask, :] .= 0
+    # simulation.momentum_densities[simulation.object_mask, :] .= 0
 
     stream!(simulation)
 
