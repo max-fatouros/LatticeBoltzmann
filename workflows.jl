@@ -34,8 +34,6 @@ function single_disk_scene(reynolds_number=200)
     return simulation
 end
 
-
-
 function single_cylinder_scene(reynolds_number=60)
     simulation = SimulationD3Q15((200, 50, 50))
 
@@ -49,8 +47,6 @@ function single_cylinder_scene(reynolds_number=60)
     set_reynolds_number!(simulation, reynolds_number)
     return simulation
 end
-
-
 
 function make_velocity_plots()
     with_theme(
@@ -163,11 +159,34 @@ function plot_speed_of_sound_fit(dimensions=2)
     @show parameters[2] - 1 / sqrt(3)
 end
 
-# function plot_karman_vortex()
-#     sim = single_sphere_scene()
-#     fig = Figure()
-#     plot(sim)
-# end
+function plot_vortex()
+    sim = single_disk_scene()
+    fig = Figure()
+
+    CairoMakie.activate!()
+
+    ax = Makie.Axis(fig[1, 1])
+    for reynolds_number ∈ (
+        100,
+        150,
+        200,
+    )
+        absolute_vorticities = []
+        reset!(sim)
+        set_reynolds_number!(sim, reynolds_number)
+
+        for t ∈ 1:5000
+            absolute_vorticity = sum(abs.(get_curls(sim)))
+            push!(absolute_vorticities, absolute_vorticity)
+            update!(sim)
+        end
+
+        Makie.lines!(ax, absolute_vorticities; label="$reynolds_number")
+    end
+
+    axislegend(ax)
+    return fig
+end
 
 function plot_all(sim::SimulationD2)
     CairoMakie.activate!()
@@ -175,12 +194,12 @@ function plot_all(sim::SimulationD2)
 
     axes = [Makie.Axis(fig[i, 1]) for i ∈ 1:3]
     configs = [
-        Config(property, ax=axes[i])
+        Config(property; ax=axes[i])
         for (i, property)
-        in enumerate((
+        ∈ enumerate((
             :speed,
             :curl,
-            :velocity
+            :velocity,
         ))
     ]
 
@@ -214,7 +233,6 @@ function plot_all(sim::SimulationD2)
 
     path = joinpath(media_dir, "all_2d.png")
     save(path, fig)
-
 
     return fig
 end
