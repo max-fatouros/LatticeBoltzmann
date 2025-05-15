@@ -165,26 +165,48 @@ function plot_vortex()
 
     CairoMakie.activate!()
 
+    final_simulations = []
+
     ax = Makie.Axis(fig[1, 1])
     for reynolds_number ∈ (
+        25,
+        50,
         100,
-        150,
         200,
+        300,
     )
         absolute_vorticities = []
         reset!(sim)
         set_reynolds_number!(sim, reynolds_number)
 
-        for t ∈ 1:5000
+
+        steps = 5000
+        prog = Progress(steps)
+
+        for t ∈ 1:steps
+            next!(prog)
             absolute_vorticity = sum(abs.(get_curls(sim)))
             push!(absolute_vorticities, absolute_vorticity)
             update!(sim)
         end
 
+        push!(final_simulations, deepcopy(sim))
+
         Makie.lines!(ax, absolute_vorticities; label="$reynolds_number")
     end
 
+    save(final_simulations, "vortex_simulations")
+
     axislegend(ax)
+    ax.xlabel = L"time $[lt]$"
+    ax.ylabel = L"absolute vorticity $[lt^{-1}]$"
+    ax.title = "2D Vorticity for different Reynolds numbers"
+
+    path = joinpath(media_dir, "vortex-2d.png")
+    Makie.save(path, fig)
+
+
+
     return fig
 end
 
