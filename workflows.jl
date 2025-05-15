@@ -161,7 +161,6 @@ function plot_speed_of_sound_fit(dimensions=2)
     @show parameters[2] - 1 / sqrt(3)
 end
 
-
 function plot_vortex_2d()
     sim = single_disk_scene()
     fig = Figure()
@@ -181,7 +180,6 @@ function plot_vortex_2d()
         absolute_vorticities = []
         reset!(sim)
         set_reynolds_number!(sim, reynolds_number)
-
 
         steps = 5000
         prog = Progress(steps)
@@ -208,11 +206,8 @@ function plot_vortex_2d()
     path = joinpath(media_dir, "vortex-2d.png")
     Makie.save(path, fig)
 
-
-
     return fig
 end
-
 
 function plot_vortex_3d()
     sim = single_cylinder_scene()
@@ -233,7 +228,6 @@ function plot_vortex_3d()
         absolute_vorticities = []
         reset!(sim)
         set_reynolds_number!(sim, reynolds_number)
-
 
         steps = 5000
         prog = Progress(steps)
@@ -260,13 +254,8 @@ function plot_vortex_3d()
     path = joinpath(media_dir, "vortex-3d.png")
     Makie.save(path, fig)
 
-
-
     return fig
 end
-
-
-
 
 function plot_all(sim::SimulationD2)
     CairoMakie.activate!()
@@ -345,6 +334,68 @@ function plot_vortices(filename="vortex_simulations")
 
     path = joinpath(media_dir, "vortex_speeds_2d.png")
     Makie.save(path, fig)
+
+    return fig
+end
+
+function wing_scene(reynolds_number=300)
+    simulation = SimulationD2Q9()
+    @info "initiated simulation"
+
+    point_cloud = get_point_cloud("wing.tiff")
+    @info "loaded point cloud"
+
+    add_source!(simulation, (5, :), 1, 0.2)
+    set_reynolds_number!(simulation, reynolds_number)
+
+    simulation.object_mask .= 0
+    # for i in 0:0.1:1
+    #     simulation.object_mask .= 0
+    #     # simulation.object_mask[1:end, 1] .= true
+    #     # simulation.object_mask[1:end, end] .= true
+    #     add_point_cloud(
+    #         simulation,
+    #         point_cloud;
+    #         position=(75,50),
+    #         rotation=pi/2 + i*(pi/8),
+    #         side_length=100,
+    #     )
+    # end
+    add_point_cloud(
+        simulation,
+        point_cloud;
+        position=(75, 50),
+        rotation=pi / 2 + pi / 32,
+        # rotation=pi/2 + pi/16,
+        # rotation=pi/2 + pi/8,
+        side_length=100,
+    )
+
+    forces = []
+    steps = 1000
+    prog = Progress(steps)
+    for i ∈ 1:steps
+        next!(prog)
+        update!(simulation)
+        force = get_forces(simulation)
+        push!(forces, force)
+    end
+
+    return simulation, forces
+end
+
+slice(tuples, i) = [tuple[i] for tuple ∈ tuples]
+
+function plot_forces(forces)
+    CairoMakie.activate!()
+
+    fig = Figure()
+    ax = Makie.Axis(fig[1, 1])
+
+    Makie.lines!(ax, slice(forces, 1); label="drag")
+    Makie.lines!(ax, slice(forces, 2); label="lift")
+
+    axislegend(ax)
 
     return fig
 end
