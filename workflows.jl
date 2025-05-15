@@ -344,6 +344,11 @@ function plot_wing_sims(filename="wing_2d")
     CairoMakie.activate!()
     sims = load(filename)
 
+    sims = sims[[1, 6, 11, 16]]
+
+    # HACK: hardcoded angles!
+    angles = [0, 10, 20, 30]
+
     fig = Figure()
     for (i, sim) ∈ enumerate(sims)
         ax = Makie.Axis(fig[i, 1])
@@ -358,7 +363,7 @@ function plot_wing_sims(filename="wing_2d")
         Box(fig[i, 2]; color=:gray90)
         Label(
             fig[i, 2],
-            "$(round(Int, get_reynolds_number(sim)))";
+            L"%$(angles[i])$^\circ$",
             rotation=pi / 2,
             tellheight=false,
         )
@@ -367,7 +372,7 @@ function plot_wing_sims(filename="wing_2d")
     resize_to_layout!(fig)
 
     path = joinpath(media_dir, "wing_speeds_2d.png")
-    # Makie.save(path, fig)
+    Makie.save(path, fig)
 
     return fig
 end
