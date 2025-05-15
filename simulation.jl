@@ -988,18 +988,20 @@ function run!(
     return
 end
 
-
 function save(simulation::Simulation, filename="simulation")
     path = joinpath(simulations_dir, "$(filename).bin")
     open(path, "w") do f
         serialize(f, simulation)
+        return
     end
     @info "saved to $path"
+    return
 end
 function load(filename="simulation")
     sim = nothing
     open(joinpath(simulations_dir, "$(filename).bin"), "r") do f
         sim = deserialize(f)
+        return
     end
     return sim
 end
