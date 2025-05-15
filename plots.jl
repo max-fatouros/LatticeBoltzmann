@@ -110,9 +110,9 @@ function plot(
         config = Config()
     end
     fig = nothing
-    if isnothing(ax)
+    if isnothing(config.ax)
         fig = Figure()
-        config.ax = Axis3(fig[1, 1]; aspect=:data)
+        config.ax = get_axis(simulation, fig[1,1])
     end
 
     get_property = nothing
@@ -163,20 +163,17 @@ function plot_velocities(
     fig = nothing
     if isnothing(ax)
         fig = Figure()
-        ax = CairoMakie.Axis(fig[1, 1]; aspect=DataAspect())
+        ax = CairoMakie.Axis(fig[1, 1];)
     end
-
-    # speeds = @lift(get_speeds($simulation))
 
     defaults = (; colormap=:viridis)
     kwargs = merge(defaults, kwargs)
 
-    # f(x, simulation) = Point2f(simulation.momentum_densities[round.(Int, x)..., :])
-    # f(x) = @lift(f(x, $simulation))
     field = @lift begin
         sim = $simulation
         (x, y) -> Point2f(sim.momentum_densities[round(Int, x), round(Int, y), :])
     end
+
 
     CairoMakie.streamplot!(
         ax,
@@ -374,9 +371,9 @@ function animate_live!(
         )
     end
 
-    for i in 1:length(fig.layout.rowsizes)
-        rowsize!(fig.layout, i, Aspect(1, get_aspect(simulation)))
-    end
+    # for i in 1:length(fig.layout.rowsizes)
+    #     rowsize!(fig.layout, i, Aspect(1, get_aspect(simulation)))
+    # end
 
     resize_to_layout!(fig)
     display(fig)
