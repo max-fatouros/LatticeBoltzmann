@@ -680,7 +680,7 @@ function collide!(simulation::Simulation)
     return
 end
 
-function stream!(simulation::SimulationD2)
+function singlethreaded_stream!(simulation::SimulationD2)
     simulation.velocity_distribution_buffer .= simulation.velocity_distribution
 
     @inbounds for i ∈ axes(simulation.velocity_distribution, 3)
@@ -692,6 +692,43 @@ function stream!(simulation::SimulationD2)
             dest_y = mod1(j + dy, ny)
             simulation.velocity_distribution[dest_x, dest_y, i] = (
                 simulation.velocity_distribution_buffer[k, j, i]
+            )
+        end
+    end
+    return
+end
+
+function stream!(simulation::SimulationD2)
+    simulation.velocity_distribution_buffer .= simulation.velocity_distribution
+
+    @inbounds Threads.@threads for i ∈ axes(simulation.velocity_distribution, 3)
+        dx, dy = simulation.velocities[i]
+        nx, ny = size(simulation.velocity_distribution)[1:2]
+
+        for j ∈ 1:ny, k ∈ 1:nx
+            dest_x = mod1(k + dx, nx)
+            dest_y = mod1(j + dy, ny)
+            simulation.velocity_distribution[dest_x, dest_y, i] = (
+                simulation.velocity_distribution_buffer[k, j, i]
+            )
+        end
+    end
+    return
+end
+
+function singlethreaded_stream!(simulation::SimulationD3)
+    simulation.velocity_distribution_buffer .= simulation.velocity_distribution
+
+    @inbounds for i ∈ axes(simulation.velocity_distribution, 4)
+        dx, dy, dz = simulation.velocities[i]
+        nx, ny, nz = size(simulation.velocity_distribution)[1:3]
+
+        for j ∈ 1:nz, k ∈ 1:ny, m ∈ 1:nx
+            dest_x = mod1(m + dx, nx)
+            dest_y = mod1(k + dy, ny)
+            dest_z = mod1(j + dz, nz)
+            simulation.velocity_distribution[dest_x, dest_y, dest_z, i] = (
+                simulation.velocity_distribution_buffer[m, k, j, i]
             )
         end
     end
@@ -717,7 +754,7 @@ function stream!(simulation::SimulationD3)
     return
 end
 
-function singlethreaded_update!(simulation::SimulationD2)
+function singlethreaded_update!(simulation::Simulation)
     velocities_in_objects = get_velocities_in_objects(simulation)
 
     compute_mass_densities!(simulation)
@@ -732,26 +769,7 @@ function singlethreaded_update!(simulation::SimulationD2)
     simulation.velocity_distribution[simulation.object_mask, :] = velocities_in_objects
     # simulation.momentum_densities[simulation.object_mask, :] .= 0
 
-    stream!(simulation)
-    return
-end
-
-function singlethreaded_update!(simulation::SimulationD3)
-    velocities_in_objects = get_velocities_in_objects(simulation)
-
-    compute_mass_densities!(simulation)
-    compute_momentum_densities!(simulation)
-    set_sources!(simulation)
-    compute_equilibrium_distribution!(simulation)
-
-    collide!(simulation)
-    set_no_bounce_boundaries!(simulation)
-
-    simulation.velocity_distribution[simulation.object_mask, :] = velocities_in_objects
-    simulation.momentum_densities[simulation.object_mask, :] .= 0
-
-    stream!(simulation)
-
+    singlethreaded_stream!(simulation)
     return
 end
 
