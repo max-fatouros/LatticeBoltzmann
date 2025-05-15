@@ -337,6 +337,12 @@ function get_viscosity(simulation::Simulation)
            ) * get_speeed_of_sound(simulation)^2 * simulation.delta_t
 end
 
+get_forces(simulation::SimulationD2) =
+    2 .* (
+        sum(simulation.momentum_densities[:, :, 1][simulation.object_mask]),
+        sum(simulation.momentum_densities[:, :, 2][simulation.object_mask]),
+    )
+
 function set_viscosity!(simulation::Simulation, value)
     simulation.parameters.characteristic_time = (
         (value / ((get_speeed_of_sound(simulation)^2) * simulation.delta_t))
@@ -470,17 +476,14 @@ function get_curls(simulation::SimulationD3)
     #!format: on
 end
 
-
 function get_curl_norms(simulation::SimulationD3)
     curls = get_curls(simulation)
     return sqrt.(
-        curls[1] .^2
-        + curls[2] .^2
-        + curls[3] .^2
+        curls[1] .^ 2
+        + curls[2] .^ 2
+        + curls[3] .^ 2
     )
 end
-
-
 
 function get_velocities_in_objects(simulation::SimulationD2Q9)
     # https://github.com/pmocz/latticeboltzmann-python/blob/main/latticeboltzmann.py
@@ -729,7 +732,7 @@ function singlethreaded_update!(simulation::SimulationD2)
     set_no_bounce_boundaries!(simulation)
 
     simulation.velocity_distribution[simulation.object_mask, :] = velocities_in_objects
-    simulation.momentum_densities[simulation.object_mask, :] .= 0
+    # simulation.momentum_densities[simulation.object_mask, :] .= 0
 
     stream!(simulation)
     return
@@ -952,7 +955,7 @@ function multithreaded_update!(simulation::SimulationD2)
     set_no_bounce_boundaries!(simulation)
 
     simulation.velocity_distribution[simulation.object_mask, :] = velocities_in_objects
-    simulation.momentum_densities[simulation.object_mask, :] .= 0
+    # simulation.momentum_densities[simulation.object_mask, :] .= 0
 
     stream!(simulation)
 
