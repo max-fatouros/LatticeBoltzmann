@@ -447,6 +447,41 @@ function get_curls(simulation::SimulationD2)
     #!format: on
 end
 
+function get_curls(simulation::SimulationD3)
+    #!format: off
+    velocities = (
+        simulation.momentum_densities
+        ./ simulation.mass_densities
+    )
+    return (
+        (
+           derivative(velocities[:,:,:,3], (0, 1, 0))
+           - derivative(velocities[:,:,:,2], (0, 0, 1))
+        ),
+        (
+           derivative(velocities[:,:,:,1], (0, 0, 1))
+           - derivative(velocities[:,:,:,3], (1, 0, 0))
+        ),
+        (
+           derivative(velocities[:,:,:,2], (1, 0, 0))
+           - derivative(velocities[:,:,:,1], (0, 1, 0))
+        )
+    )
+    #!format: on
+end
+
+
+function get_curl_norms(simulation::SimulationD3)
+    curls = get_curls(simulation)
+    return (
+        curls[1] .^2
+        + curls[2] .^2
+        + curls[3] .^2
+    )
+end
+
+
+
 function get_velocities_in_objects(simulation::SimulationD2Q9)
     # https://github.com/pmocz/latticeboltzmann-python/blob/main/latticeboltzmann.py
     velocities_in_objects = simulation.velocity_distribution[simulation.object_mask, :]
