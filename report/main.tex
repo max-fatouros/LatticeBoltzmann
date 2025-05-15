@@ -291,29 +291,44 @@ I've left more significant figures than usual in the mean values to compare as a
 \subsection{K\'arm\'an Vortices}
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=\textwidth]{all_2d}
-    \caption{
-      A K\'arm\'an vortex street behind a disk.
-      We only show postive and negative values of the curl.
-      This frame of the simulation is taken at $10^{4}$ steps, with a reynolds number of 300.
-    }
-    \label{fig:velocity-d3q15}
-\end{figure}
 
+    \begin{subfigure}[t]{0.59\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{vortex_all_2d}
+        \caption{
+          A K\'arm\'an vortex street behind a disk.
+          We only show postive and negative values of the curl.
+          This frame of the simulation is taken at $10^{4}$ steps, with a reynolds number of 300.
+        }
+        \label{fig:speed-fit-2d}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.39\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{vortex_speeds_2d}
+        \caption{
+          Simulation at varying Reynolds numbers (shown in the grey boxes to the right of the subplots), 5000 steps.
+        }
+        \label{fig:speed-fit-3d}
+    \end{subfigure}
+    \caption{
+    }
+    \label{fig:speed-fit}
+\end{figure}
 
 \begin{figure}[h!]
     \centering
 
-    \begin{subfigure}[t]{0.62\textwidth}
+    \begin{subfigure}[t]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{vortex-2d}
         \caption{}
         \label{fig:speed-fit-2d}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[t]{0.36\textwidth}
+    \begin{subfigure}[t]{0.49\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{vortex_speeds_2d}
+        \includegraphics[width=\textwidth]{vortex-3d}
         \caption{}
         \label{fig:speed-fit-3d}
     \end{subfigure}
@@ -323,10 +338,45 @@ I've left more significant figures than usual in the mean values to compare as a
 
 \end{figure}
 
+\subsection{Optimal Wing Angle of Attack}
+\begin{figure}[h!]
+    \centering
+
+    \begin{subfigure}[t]{0.54\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{wing_all_2d}
+        \caption{
+          A snapshot of simulation at $10^{4}$ steps, and an angle of attack of 15 degrees, which has a near-peak lift to drag ratio.
+        }
+        \label{fig:speed-fit-2d}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.44\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{wing_speeds_2d}
+        \caption{
+          Snapshots at 5000 steps of different angles of attack.
+        }
+        \label{fig:speed-fit-3d}
+    \end{subfigure}
+    \caption{
+      Reynolds number of 500.
+    }
+    \label{fig:speed-fit}
+\end{figure}
+
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.5\textwidth]{vortex-3d}
+    \includegraphics[width=0.5\textwidth]{wing-2d}
+    \caption{
+    }
+    \label{fig:velocity-d3q15}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\textwidth]{wing-3d}
     \caption{
     }
     \label{fig:velocity-d3q15}
