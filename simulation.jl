@@ -341,6 +341,17 @@ function get_forces(simulation::SimulationD2)
     )
 end
 
+function get_forces(simulation::SimulationD3)
+    # HACK: Avoid lattice boundaries
+    object_mask = simulation.object_mask[2:end-1, 2:end-1, 2:end-1]
+
+    return 2 .* (
+        sum(simulation.momentum_densities[2:end-1, 2:end-1, 2:end-1, 1][object_mask]),
+        sum(simulation.momentum_densities[2:end-1, 2:end-1, 2:end-1, 2][object_mask]),
+        sum(simulation.momentum_densities[2:end-1, 2:end-1, 2:end-1, 3][object_mask]),
+    )
+end
+
 function set_viscosity!(simulation::Simulation, value)
     simulation.parameters.characteristic_time = (
         (value / ((get_speeed_of_sound(simulation)^2) * simulation.delta_t))
