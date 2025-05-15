@@ -235,7 +235,7 @@ function plot_vortex_3d()
         set_reynolds_number!(sim, reynolds_number)
 
 
-        steps = 50
+        steps = 5000
         prog = Progress(steps)
 
         for t ∈ 1:steps
