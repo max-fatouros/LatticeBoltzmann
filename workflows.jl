@@ -411,6 +411,38 @@ function wing_scene_2d(;
 end
 
 
+function wing_scene_3d(;
+    reynolds_number=250,
+    angle=20,
+)
+
+    GLMakie.activate!()
+    simulation = SimulationD3Q15((100, 50, 50))
+    @info "initiated simulation"
+
+    point_cloud = load("wing_point_cloud")
+    @info "loaded point cloud"
+
+    # add_source!(simulation, (5, :), 1, 0.25)
+    add_source!(simulation, (5, 5:45, 5:45), 1, 0.1)
+    set_reynolds_number!(simulation, reynolds_number)
+
+
+    simulation.object_mask .= 0
+    simulation.object_mask[:, :, 1] .= true
+    simulation.object_mask[:, :, end] .= true
+    simulation.object_mask[:, 1, :] .= true
+    simulation.object_mask[:, end, :] .= true
+    add_point_cloud(
+        simulation,
+        point_cloud;
+        position=(25, 25, 25),
+        rotation=(0, -ang_to_rad(angle), 0),
+        side_length=40,
+    )
+    return simulation
+end
+
 
 function angle_of_attack_2d(;
     reynolds_number=500,
@@ -451,6 +483,46 @@ function angle_of_attack_2d(;
     path = joinpath(media_dir, "wing-2d.png")
     Makie.save(path, fig)
     save(simulations, "wing_2d")
+
+    return fig
+end
+
+function angle_of_attack_3d(;
+    reynolds_number=250,
+    steps=1_000,
+)
+    angles = 0:6:30
+    ratios = zeros(length(angles))
+    prog = Progress(length(angles))
+    Threads.@threads for i in 1:length(angles)
+
+        simulation = wing_scene_3d(
+            reynolds_number=reynolds_number,
+            angle=angles[i],
+        )
+
+        forces = []
+        next!(prog)
+        for _ in 1:steps
+            singlethreaded_update!(simulation)
+            force = get_forces(simulation)
+            push!(forces, force)
+        end
+        drag = mean(slice(forces, 1)[steps ÷ 2:end])
+        lift = mean(slice(forces, 2)[steps ÷ 2:end])
+        ratio = lift / drag
+        ratios[i] = ratio
+    end
+
+
+    fig = Figure()
+    ax = Makie.Axis(fig[1,1])
+    Makie.scatterlines!(ax, angles, ratios)
+    ax.xlabel = "angle of attack [degrees]"
+    ax.ylabel = "lift / drag"
+    ax.title = "lift / drag ratio in 3D"
+    path = joinpath(media_dir, "wing-3d.png")
+    Makie.save(path, fig)
 
     return fig
 end
