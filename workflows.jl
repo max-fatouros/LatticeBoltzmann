@@ -487,48 +487,6 @@ function angle_of_attack_2d(;
     return fig
 end
 
-function angle_of_attack_3d(;
-    reynolds_number=250,
-    steps=1_000,
-)
-    angles = 0:6:30
-    ratios = zeros(length(angles))
-    prog = Progress(length(angles))
-    Threads.@threads for i in 1:length(angles)
-
-        simulation = wing_scene_3d(
-            reynolds_number=reynolds_number,
-            angle=angles[i],
-        )
-
-        forces = []
-        next!(prog)
-        for _ in 1:steps
-            singlethreaded_update!(simulation)
-            force = get_forces(simulation)
-            push!(forces, force)
-        end
-        drag = mean(slice(forces, 1)[steps ÷ 2:end])
-        lift = mean(slice(forces, 2)[steps ÷ 2:end])
-        ratio = lift / drag
-        ratios[i] = ratio
-    end
-
-
-    fig = Figure()
-    ax = Makie.Axis(fig[1,1])
-    Makie.scatterlines!(ax, angles, ratios)
-    ax.xlabel = "angle of attack [degrees]"
-    ax.ylabel = "lift / drag"
-    ax.title = "lift / drag ratio in 3D"
-    path = joinpath(media_dir, "wing-3d.png")
-    Makie.save(path, fig)
-
-    return fig
-end
-
-
-
 function angle_of_attack_2d(;
     reynolds_number=500,
     steps=10_000,
@@ -572,6 +530,45 @@ function angle_of_attack_2d(;
     return fig
 end
 
+function angle_of_attack_3d(;
+    reynolds_number=250,
+    steps=1_000,
+)
+    angles = 0:6:30
+    ratios = zeros(length(angles))
+    prog = Progress(length(angles))
+    Threads.@threads for i in 1:length(angles)
+
+        simulation = wing_scene_3d(
+            reynolds_number=reynolds_number,
+            angle=angles[i],
+        )
+
+        forces = []
+        next!(prog)
+        for _ in 1:steps
+            singlethreaded_update!(simulation)
+            force = get_forces(simulation)
+            push!(forces, force)
+        end
+        drag = mean(slice(forces, 1)[steps ÷ 2:end])
+        lift = mean(slice(forces, 3)[steps ÷ 2:end])
+        ratio = lift / drag
+        ratios[i] = ratio
+    end
+
+
+    fig = Figure()
+    ax = Makie.Axis(fig[1,1])
+    Makie.scatterlines!(ax, angles, ratios)
+    ax.xlabel = "angle of attack [degrees]"
+    ax.ylabel = "lift / drag"
+    ax.title = "lift / drag ratio in 3D"
+    path = joinpath(media_dir, "wing-3d.png")
+    Makie.save(path, fig)
+
+    return fig
+end
 
 
 
