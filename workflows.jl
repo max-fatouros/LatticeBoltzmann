@@ -1,3 +1,5 @@
+using ImageFiltering
+
 include("simulation.jl")
 include("plots.jl")
 
@@ -257,7 +259,7 @@ function plot_vortex_3d()
     return fig
 end
 
-function plot_all(sim::SimulationD2)
+function plot_all(sim::SimulationD2, filename="all.png")
     CairoMakie.activate!()
     fig = Figure()
 
@@ -300,8 +302,8 @@ function plot_all(sim::SimulationD2)
 
     resize_to_layout!(fig)
 
-    path = joinpath(media_dir, "all_2d.png")
-    save(path, fig)
+    path = joinpath(media_dir, filename)
+    Makie.save(path, fig)
 
     return fig
 end
@@ -338,39 +340,165 @@ function plot_vortices(filename="vortex_simulations")
     return fig
 end
 
-function wing_scene(reynolds_number=300)
+function plot_wing_sims(filename="wing_2d")
+    CairoMakie.activate!()
+    sims = load(filename)
+
+    fig = Figure()
+    for (i, sim) ∈ enumerate(sims)
+        ax = Makie.Axis(fig[i, 1])
+        plot(sim, Config(:speed; ax=ax))
+        rowsize!(fig.layout, i, Aspect(1, get_aspect(sim)))
+        if i <= (length(sims) - 1)
+            ax.xticklabelsvisible = false
+        else
+            ax.xlabel = "x [lx]"
+        end
+        ax.ylabel = "y [lx]"
+        Box(fig[i, 2]; color=:gray90)
+        Label(
+            fig[i, 2],
+            "$(round(Int, get_reynolds_number(sim)))";
+            rotation=pi / 2,
+            tellheight=false,
+        )
+    end
+
+    resize_to_layout!(fig)
+
+    path = joinpath(media_dir, "wing_speeds_2d.png")
+    # Makie.save(path, fig)
+
+    return fig
+end
+
+rad_to_ang(radians) = radians * (360 / (2 * pi))
+ang_to_rad(ang) = ang * ((2 * pi) / 360)
+
+
+
+function wing_scene_2d(;
+    reynolds_number=500,
+    angle=20,
+)
     simulation = SimulationD2Q9()
     @info "initiated simulation"
 
     point_cloud = get_point_cloud("wing.tiff")
     @info "loaded point cloud"
 
-    add_source!(simulation, (5, :), 1, 0.2)
+    # add_source!(simulation, (5, :), 1, 0.25)
+    add_source!(simulation, (5, 5:95), 1, 0.1)
     set_reynolds_number!(simulation, reynolds_number)
 
+
     simulation.object_mask .= 0
-    # for i in 0:0.1:1
-    #     simulation.object_mask .= 0
-    #     # simulation.object_mask[1:end, 1] .= true
-    #     # simulation.object_mask[1:end, end] .= true
-    #     add_point_cloud(
-    #         simulation,
-    #         point_cloud;
-    #         position=(75,50),
-    #         rotation=pi/2 + i*(pi/8),
-    #         side_length=100,
-    #     )
-    # end
+    simulation.object_mask[1:end, 1] .= true
+    simulation.object_mask[1:end, end] .= true
     add_point_cloud(
         simulation,
         point_cloud;
         position=(75, 50),
-        rotation=pi / 2 + pi / 32,
-        # rotation=pi/2 + pi/16,
-        # rotation=pi/2 + pi/8,
-        side_length=100,
+        rotation=pi / 2 + ang_to_rad(angle),
+        side_length=75,
     )
+    return simulation
+end
 
+
+
+function angle_of_attack_2d(;
+    reynolds_number=500,
+    steps=10_000,
+)
+    angles = 0:2:30
+    simulations = Array{Simulation}(undef, length(angles))
+    ratios = zeros(length(angles))
+    prog = Progress(length(angles))
+    Threads.@threads for i in 1:length(angles)
+
+        simulation = wing_scene_2d(
+            reynolds_number=reynolds_number,
+            angle=angles[i],
+        )
+
+        forces = []
+        next!(prog)
+        for _ in 1:steps
+            singlethreaded_update!(simulation)
+            force = get_forces(simulation)
+            push!(forces, force)
+        end
+        drag = mean(slice(forces, 1)[steps ÷ 2:end])
+        lift = mean(slice(forces, 2)[steps ÷ 2:end])
+        ratio = lift / drag
+        ratios[i] = ratio
+        simulations[i] = simulation
+    end
+
+
+    fig = Figure()
+    ax = Makie.Axis(fig[1,1])
+    Makie.scatterlines!(ax, angles, ratios)
+    ax.xlabel = "angle of attack [degrees]"
+    ax.ylabel = "lift / drag"
+    ax.title = "lift / drag ratio in 2D"
+    path = joinpath(media_dir, "wing-2d.png")
+    Makie.save(path, fig)
+    save(simulations, "wing_2d")
+
+    return fig
+end
+
+
+
+function angle_of_attack_2d(;
+    reynolds_number=500,
+    steps=10_000,
+)
+    angles = 0:2:30
+    simulations = Array{Simulation}(undef, length(angles))
+    ratios = zeros(length(angles))
+    prog = Progress(length(angles))
+    Threads.@threads for i in 1:length(angles)
+
+        simulation = wing_scene_2d(
+            reynolds_number=reynolds_number,
+            angle=angles[i],
+        )
+
+        forces = []
+        next!(prog)
+        for _ in 1:steps
+            singlethreaded_update!(simulation)
+            force = get_forces(simulation)
+            push!(forces, force)
+        end
+        drag = mean(slice(forces, 1)[steps ÷ 2:end])
+        lift = mean(slice(forces, 2)[steps ÷ 2:end])
+        ratio = lift / drag
+        ratios[i] = ratio
+        simulations[i] = simulation
+    end
+
+
+    fig = Figure()
+    ax = Makie.Axis(fig[1,1])
+    Makie.scatterlines!(ax, angles, ratios)
+    ax.xlabel = "angle of attack [degrees]"
+    ax.ylabel = "lift / drag"
+    ax.title = "lift / drag ratio in 2D"
+    path = joinpath(media_dir, "wing-2d.png")
+    Makie.save(path, fig)
+    save(simulations, "wing_2d")
+
+    return fig
+end
+
+
+
+
+function wing_forces(simulation)
     forces = []
     steps = 1000
     prog = Progress(steps)
@@ -380,11 +508,17 @@ function wing_scene(reynolds_number=300)
         force = get_forces(simulation)
         push!(forces, force)
     end
-
-    return simulation, forces
+    return forces
 end
 
+
+
 slice(tuples, i) = [tuple[i] for tuple ∈ tuples]
+function slice(tuples, i, width)
+    ker = ImageFiltering.Kernel.gaussian((3,))
+    output = [tuple[i] for tuple ∈ tuples]
+    return imfilter(output, ker)
+end
 
 function plot_forces(forces)
     CairoMakie.activate!()
@@ -392,10 +526,19 @@ function plot_forces(forces)
     fig = Figure()
     ax = Makie.Axis(fig[1, 1])
 
-    Makie.lines!(ax, slice(forces, 1); label="drag")
-    Makie.lines!(ax, slice(forces, 2); label="lift")
+    width = 10
 
+
+    xs = slice(forces, 1, width)
+    ys = slice(forces, 2, width)
+
+
+    Makie.lines!(ax, xs; label="drag")
+    Makie.lines!(ax, ys; label="lift")
     axislegend(ax)
+
+    @show mean(ys) / mean(xs)
+
 
     return fig
 end
