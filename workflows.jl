@@ -20,7 +20,7 @@ function set_theme()
 end
 set_theme()
 
-function single_disk_scene(reynolds_number=300)
+function single_disk_scene(reynolds_number=200)
     simulation = SimulationD2Q9()
 
     add_sphere!(
