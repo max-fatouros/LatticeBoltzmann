@@ -255,7 +255,7 @@ function plot_vortex_3d()
     axislegend(ax)
     ax.xlabel = L"time $[lt]$"
     ax.ylabel = L"absolute vorticity $[lt^{-1}]$"
-    ax.title = "2D Vorticity for different Reynolds numbers"
+    ax.title = "3D Vorticity for different Reynolds numbers"
 
     path = joinpath(media_dir, "vortex-3d.png")
     Makie.save(path, fig)
