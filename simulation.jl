@@ -473,7 +473,7 @@ end
 
 function get_curl_norms(simulation::SimulationD3)
     curls = get_curls(simulation)
-    return (
+    return sqrt.(
         curls[1] .^2
         + curls[2] .^2
         + curls[3] .^2
