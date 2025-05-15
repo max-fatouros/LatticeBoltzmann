@@ -182,6 +182,8 @@ function plot_velocities(
         1:100;
         kwargs...,
     )
+    plot_objects(sim, ax=ax)
+
 
     return fig
 end
@@ -204,9 +206,20 @@ function plot_objects(
         fig = Figure()
         ax = CairoMakie.Axis(fig[1, 1]; aspect=DataAspect())
     end
+    mask = @lift begin
+        sim = $simulation
+        mask = zeros(
+            Float64,
+            size(sim.object_mask)...
+        )
+        mask .= NaN
+        mask[sim.object_mask .== 1] .= 1
+        return mask
+    end
     CairoMakie.image!(
         ax,
-        @lift(identity($simulation.object_mask));
+        mask,
+        colormap=[:black],
         kwargs...,
     )
     return fig
