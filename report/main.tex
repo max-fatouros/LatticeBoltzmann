@@ -198,6 +198,13 @@ In this paper, the D2Q9 and D3Q15 methods were implemented.
 
 Both methods set $\Delta t = 1 lt$ and $\Delta x = 1 lx$, where, using the unit-notation defined in~\cite{sukop_lattice_2006}, $[lt]$ denotes lattice time units and $[lx]$ denotes lattice space units.
 
+
+To load 2D models into a simulation, we save a drawing of a CAD model at a tiff image (a raw image), and load the image into Julia using the \verb|TiffImages|~\cite{nagy_tlnagytiffimagesjl_2025} package.
+To load 3D models into a simulation, we save a CAD model as an STL file, we then convert that to a point cloud (a set of position values) using the \verb|stl-to-voxel| program~\cite{pederkoff_cpederkoffstl--voxel_2025}.
+In both cases, we get a point cloud that we can bin in to either pixels or voxels to use in our simulation.
+
+
+
 \subsection{D2Q9 Model}
 The D2Q9 models defines the velocities $\mathbf v_{i}$ as shown in~\Cref{fig:velocity-d2q9}.
 \begin{figure}[h!]
@@ -387,10 +394,11 @@ We see that the wing begins to stall past an angle of about 15 degrees, meaning 
     \label{fig:wing-1}
 \end{figure}
 
-To find the optimal angle of attack, we varied the angle from 0 to 30 degrees and ran the simulation for $10^{4}$ time steps.
+To find the optimal angle of attack, also known as the critical angle, we varied the angle from 0 to 30 degrees and ran the simulation for $10^{4}$ time steps.
 At each angle we tested, the first half of the time steps were discarded, then at the remaining steps the force was averaged.
-From \Cref{fig:wing-2}, we see that the lift to drag ratio peaks for the 2D simulation at 15 degrees, while for the 3D simulation, it peaks at around 25 degrees.
+From \Cref{fig:wing-2}, we see that the lift to drag ratio peaks for the 2D simulation at 14 degrees, while for the 3D simulation, it peaks at around 24 degrees.
 It should be noted the the 3D simulation was ran at half the Reynolds number of the 2D simulation since the 3D simulation was not stable at higher Reynolds number values.
+These values are within or close to the critical angle of attack of 15--20 degrees~\cite{clancy_aerodynamics_1996}.
 
 
 \begin{figure}[h!]
@@ -419,9 +427,14 @@ It should be noted the the 3D simulation was ran at half the Reynolds number of 
     \label{fig:wing-2}
 \end{figure}
 
-
 \section{Conclusion}
-
+In conclusion, we note that the LBM is a powerful tool that can be used to model a variety of fluid simulations in two or three dimensions.
+We found that
+\begin{itemize}
+  \item the measured speed of sound in the lattice agreed with the value it was set to.
+  \item The model produces K\'arm\'an vortex streets as is expected from a fluid simulation.
+  \item The model can be used to optimize the parameter of real work models, similar to how computational fluid dynamic software is used in industry.
+\end{itemize}
 
 \clearpage
 % References
