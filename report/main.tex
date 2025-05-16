@@ -134,7 +134,6 @@ After \emph{colliding}, we \emph{stream} the particles, moving the position comp
 \end{equation}
 where $\Delta t \mathbf v_{i}$ must be chosen such that $\mathbf x + \Delta t \mathbf v_{i}$ falls on a lattice site.
 In practice, the velocities are often chosen such $\Delta t$ can be set to $\Delta t = n$ with $n = 1$, or more generally with $n \in \mathbb{Z}_{+}$
-
 \subsection{Boundary Conditions}
 
 The possible boundary conditions we consider in our model are
@@ -185,6 +184,15 @@ This is done simply by setting~\cite{mei_lattice_2000}
   &= F^{*}_{i}\left(X^{(j)}_{N_{j} - 1} - 1, v^{(j)}_{i}, t\right)
 \end{align}
 after the collision step.
+
+\subsection{Force Calculation}
+To calculate the forces on an object during the simulation, we use the fact that all the objects in the simulation use bounce back boundary conditions, and therefore all densities are equal to their negative value in the time step after a collision, to compute the force $F$ as~\cite{schalkers_momentum_2024}
+\begin{align}
+  F &= \sum_{i} \frac{1}{\Delta t} (\rho(\mathbf x, t) \mathbf u(\mathbf x, t) - \rho(\mathbf x + \mathbf v_{i} \Delta t, t+\Delta t) \mathbf u(\mathbf x + \mathbf v_{i}\Delta t, t + \Delta t)) \\
+  &= \frac{2\rho(\mathbf x, t)}{\Delta t} \sum_{i}  \mathbf u(\mathbf x, t)
+\end{align}
+
+where $\mathbf x$ is taken at all points within the boundary of the object (technically, within the surface of the object, but we assume that all the inner force values cancel out).
 
 
 
