@@ -40,14 +40,14 @@
 
 \section{Introduction}\label{sec:introduction}
 
-The Lattice Boltzmann Method (LBM) is a computational fluid simulation method that discretizes of the Boltzmann equations.
+The Lattice Boltzmann Method (LBM) is a computational fluid simulation method that discretizes the Boltzmann equations.
 It is a method well suited for complex geometries at low (or below) mach number, and it relatively simple to parallelize because of the inherit locality of many of the computations ~\cite{bottcher_computational_2021,arumuga_perumal_review_2015}.
 
 \subsection{Lattice Gas Automata}
 
 Lattice Gas Automata (LGA) were the precursor to LBMs~\cite{sukop_lattice_2006}.
 
-LGA are cellular automata with individual particles on a lattice. These particles move, or \emph{stream}, at discrete velocites in strait lines, until the encounter another particle on the lattice. When two or more particles encounter one another, they \emph{collide}, and based on some rule set, change their velocities.
+LGA are cellular automata with individual particles on a lattice. These particles move, or \emph{stream}, at discrete velocities in strait lines, until they encounter another particle on the lattice. When two or more particles encounter one another, they \emph{collide}, and based on some rule set, change their velocities.
 
 
 \subsection{Lattice Boltzmann Method}\label{sec:introduction::lattice-boltzmann-method}
@@ -90,7 +90,7 @@ To calculate the macroscopic observables of interest, we take the moments of the
 Where $\rho$ is the number of particles at lattice point $(\mathbf x, t)$ the and $\mathbf u$ is the average velocity of the ensemble of particles at lattice point $(\mathbf x, t)$.
 
 
-We'll adopt the notation $F_{i} = F(\mathbf x, \mathbf v_{i}, t)$. At every given point on our lattice, we can compute the equilibrium density function as~\cite{bottcher_computational_2021}
+We adopt the notation $F_{i} = F(\mathbf x, \mathbf v_{i}, t)$. At every given point on our lattice, we can compute the equilibrium density function as~\cite{bottcher_computational_2021}
 \begin{equation}\label{eq:equilibrium}
   F^{\textnormal{eq}}_{i}
   = w_{i}\rho
@@ -107,27 +107,27 @@ We can then \emph{collide} the particles, to move them one step closer to their 
 \begin{equation}
   F^{*}(\mathbf x, \mathbf v_{i}, t)
   = F(\mathbf x, \mathbf v_{i}, t)
-  - \frac{\Delta t}{\tau}
+  + \frac{\Delta t}{\tau}
   \left[
     F^{\textnormal{eq}}(\mathbf x, \mathbf v_{i}, t)
     - F(\mathbf x, \mathbf v_{i}, t)
   \right]
 \end{equation}
-$\tau$ is defined as the characteristic time of the simulation, and is a parameter we vary to influence the viscosity of the model, defined as~\cite{mei_lattice_2000}
+$\tau$ is defined as the characteristic time of the simulation, and is the parameter we vary to influence the viscosity of the model, defined as~\cite{mei_lattice_2000}
 \begin{equation}
   \nu = (\tau - 0.5)c_{s}^{2} \Delta t
 \end{equation}
 
 
-In practice, a dimensionless quantity known as the Reynolds number is instead used to quantify the characteristics of the fluid flow, defined as~\cite{bottcher_computational_2021}
+In practice, a dimensionless quantity known as the Reynolds number is used instead to quantify the characteristics of the fluid flow, defined as~\cite{bottcher_computational_2021}
 \begin{equation}
   Re = \frac{uD}{\nu}
 \end{equation}
-where $u$ is the velocity of the fluid at the inlet, and $D$ is a ``characteristic length'' of the simulation, which varies upon definition, but in our case was the width of the lattice in the y-direction (perpendicular to the fluid flow in all our simulations).
+where $u$ is the velocity of the fluid at the inlet, and $D$ is a ``characteristic length'' of the simulation, which varies upon definition, but in our case it is the width of the lattice in the y-direction (perpendicular to the fluid flow in all our simulations).
 
 
 
-after \emph{colliding}, we \emph{stream} the particles, moving the position components of each density bin $F_{i}(\mathbf x, \mathbf v_{i}, t)$ in the direction of its velocity and stepping forward in time via
+After \emph{colliding}, we \emph{stream} the particles, moving the position components of each density bin $F_{i}(\mathbf x, \mathbf v_{i}, t)$ in the direction of its velocity and stepping forward in time via
 \begin{equation}
   F_{i}(\mathbf x + \Delta t\mathbf v_{i}, \mathbf v_{i}, t + \Delta t)
   = F^{*}(\mathbf x, \mathbf v_{i}, t)
@@ -172,8 +172,8 @@ the remaining collision steps are unchanged.
 
 
 \subsubsection{No-Bounce}
-No-bounce boundary conditions are used at the boundaries of our lattice, where we want any density-flow to disappear without reentering the other side of the lattice like they do with only the the periodic conditions in place.
-These boundary condition are implemented in addition to the periodic conditions.
+``No-Bounce'' boundary conditions are used at the boundaries of our lattice, where we want any density-flow to disappear without reentering the other side of the lattice like they do with only the the periodic conditions in place.
+These boundary condition can be implemented in addition to and overtop the periodic conditions.
 
 There are some advanced methods to set a boundary to an arbitrary velocity value (including zero), such as the Zou-He boundary conditions~\cite{zou_pressure_1997}
 However, in our case we are only concerned with having the flow disappear at the outlet, and so this can effectively be done by setting the derivative of the density function at the outlet to zero.
@@ -192,20 +192,19 @@ after the collision step.
 The code for this these models was written in Julia.
 The update step is ran with multiple threads, with each thread handling one hyperplane of the lattice for the calculation of $\rho$, $\mathbf u$, $F^{\textnormal{eq}}$, and $F^{*}$.
 For the streaming step however, each thread handles streaming in one discrete velocity direction $i$ instead.
-
-The domain decomposition was done in this way so that each thread handled a completely independent part of the lattice, and so that no stitching of domain boundaries was required afterwards.
+The domain decomposition was done in this way so that each thread handles a completely independent part of the lattice, and so that no stitching of domain boundaries was required afterwards.
 
 
 The number of spatial dimensions $N$ and the number of discrete velocities $M$ are often characterized by a naming scheme as DNQM. Therefore, a system in 2 dimensions with 9 discrete velocities is denoted as D2Q9.
 
-In this paper, the D2Q9 and D3Q15 methods were implemented.
+In this paper, the D2Q9 and D3Q15 methods are implemented.
 
-Both methods set $\Delta t = 1 lt$ and $\Delta x = 1 lx$, where, using the unit-notation defined in~\cite{sukop_lattice_2006}, $[lt]$ denotes lattice time units and $[lx]$ denotes lattice space units.
+Both methods set $\Delta t = 1 lt$ and $\Delta x = 1 lx$, where, using the unit-notation defined in~\cite{sukop_lattice_2006}, $[lt]$ denotes lattice-time units and $[lx]$ denotes lattice-space units.
 
 
 To load 2D models into a simulation, we save a drawing of a CAD model at a tiff image (a raw image), and load the image into Julia using the \verb|TiffImages|~\cite{nagy_tlnagytiffimagesjl_2025} package.
 To load 3D models into a simulation, we save a CAD model as an STL file, we then convert that to a point cloud (a set of position values) using the \verb|stl-to-voxel| program~\cite{pederkoff_cpederkoffstl--voxel_2025}.
-In both cases, we get a point cloud that we can bin in to either pixels or voxels to use in our simulation.
+In both cases, we get a point cloud that we can bin to either pixels or voxels for use in our simulation.
 
 
 
@@ -312,7 +311,7 @@ In~\Cref{fig:vortex-all-2d}, we see the speed, curl, and velocity of fluid produ
 It is clear from the graph of the curl that there is an area or alternating vorticity behind the disk.
 
 \Cref{fig:vortex-speeds-2d} shows how the vortex street behaves at a variety of Reynolds numbers.
-As expected, the size and vorticity of the streams increased with increasing Reynolds number.
+As expected, the size and vorticity of the streams is proportional to the Reynolds number.
 
 
 \begin{figure}[h!]
@@ -323,7 +322,7 @@ As expected, the size and vorticity of the streams increased with increasing Rey
         \includegraphics[width=\textwidth]{vortex_all_2d}
         \caption{
           A K\'arm\'an vortex street behind a disk.
-          We only show postive and negative values of the curl.
+          We only show binary postive and negative values of the curl.
           This frame of the simulation is taken at $10^{4}$ steps, with a reynolds number of 300.
         }
         \label{fig:vortex-all-2d}
@@ -333,11 +332,12 @@ As expected, the size and vorticity of the streams increased with increasing Rey
         \centering
         \includegraphics[width=\textwidth]{vortex_speeds_2d}
         \caption{
-          Simulation at varying Reynolds numbers (shown in the grey boxes to the right of the subplots), 5000 steps.
+          Simulations at varying Reynolds numbers (shown in the grey boxes to the right of the subplots), at 5000 time steps.
         }
         \label{fig:vortex-speeds-2d}
     \end{subfigure}
     \caption{
+      2D simulations of fluid flow over a disk.
     }
     \label{fig:vortex-speeds}
 \end{figure}
@@ -385,7 +385,7 @@ A wing, such as one on an airplane or an animal, produces lift and drag.
 Drag is the force on a wing in the direction of airflow.
 Lift is the force on a wing perpendicular to airflow.
 
-Lift can be increased by raising a wing, and increasing the angle of attack between the wing and the direction of travel, but raising a wing also has the effect of increasing drag.
+Lift can be increased by raising a wing, and therefore increasing the angle of attack between the wing and the direction of travel, but raising a wing also has the effect of increasing drag.
 Therefore, it is a non-trivial task to find the optimal angle of attack to maximize the lift over drag ratio.
 
 \Cref{fig:wing} shows various angles of the 3D wing model used in the following simulations.
@@ -400,8 +400,8 @@ Therefore, it is a non-trivial task to find the optimal angle of attack to maxim
 
 
 
-\Cref{fig:wing-1} shows the cross-section of a wing at various configurations of the simulation.
-The left plot shows the wing with an angle of attack of 15 degrees, at a near optimal lift to drag ratio (that we find below).
+\Cref{fig:wing-1} shows the cross-section of a wing at various configurations of the 2D simulation.
+The left plot shows the wing with an angle of attack of 15 degrees, which gives a near optimal lift to drag ratio (that we compute below).
 The right plot shows the wing at various angles from 0 to 30.
 We see that the wing begins to stall past an angle of about 15 degrees, meaning that the flow starts to separate from the wing and cause major turbulance.
 
@@ -426,7 +426,7 @@ We see that the wing begins to stall past an angle of about 15 degrees, meaning 
         \label{fig;wing-speeds-2d}
     \end{subfigure}
     \caption{
-      Wing plots for a Reynolds number of 500.
+      2D wing plots for a Reynolds number of 500.
     }
     \label{fig:wing-1}
 \end{figure}
@@ -435,7 +435,7 @@ To find the optimal angle of attack, also known as the critical angle, we varied
 At each angle we tested, the first half of the time steps were discarded, then at the remaining steps the force was averaged.
 From \Cref{fig:wing-2}, we see that the lift to drag ratio peaks for the 2D simulation at 14 degrees, while for the 3D simulation, it peaks at around 24 degrees.
 It should be noted the the 3D simulation was ran at half the Reynolds number of the 2D simulation since the 3D simulation was not stable at higher Reynolds number values.
-These values are close to the typical critical angle of attack of 15--20 degrees~\cite{clancy_aerodynamics_1996}.
+These values are close to the typical critical angle of attack of 15--20 degrees for real planes~\cite{clancy_aerodynamics_1996}.
 
 
 \begin{figure}[h!]
@@ -469,8 +469,8 @@ In conclusion, we note that the LBM is a powerful tool that can be used to model
 We found that
 \begin{itemize}
   \item the measured speed of sound in the lattice agreed with the value it was set to.
-  \item The model produces K\'arm\'an vortex streets as is expected from a fluid simulation.
-  \item The model can be used to optimize the parameter of real work models, similar to how computational fluid dynamic software is used in industry.
+  \item The model produces K\'arm\'an vortex streets as expected from a fluid simulation.
+  \item The model can be used to optimize the parameter of real world models, similar to how computational fluid dynamic software is used in industry.
 \end{itemize}
 
 \clearpage
