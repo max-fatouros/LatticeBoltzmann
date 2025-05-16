@@ -136,17 +136,6 @@ where $\Delta t \mathbf v_{i}$ must be chosen such that $\mathbf x + \Delta t \m
 In practice, the velocities are often chosen such $\Delta t$ can be set to $\Delta t = n$ with $n = 1$, or more generally with $n \in \mathbb{Z}_{+}$
 \subsection{Boundary Conditions}
 
-The possible boundary conditions we consider in our model are
-\begin{enumerate}
-  \item periodic
-  \item bounce-back
-  \item no-bounce
-\end{enumerate}
-
-These boundary conditions are defined below.
-
-% The edges of the lattice can have either periodic or no-bounce boundary conditions, the objects inserted in the simulation always have bounce-back boundary conditions.
-
 \subsubsection{Periodic}
 As usual, periodic boundary conditions can be ensured by taking the new lattice position modulo the number of lattice points.
 We can modify the streaming step in each direction j such that
