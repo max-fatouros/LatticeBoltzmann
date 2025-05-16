@@ -172,11 +172,9 @@ the remaining collision steps are unchanged.
 
 \subsubsection{No-Bounce}
 ``No-Bounce'' boundary conditions are used at the boundaries of our lattice, where we want any density-flow to disappear without reentering the other side of the lattice like they do with only the the periodic conditions in place.
-These boundary condition can be implemented in addition to and overtop the periodic conditions.
 
-There are some advanced methods to set a boundary to an arbitrary velocity value (including zero), such as the Zou-He boundary conditions~\cite{zou_pressure_1997}
-However, in our case we are only concerned with having the flow disappear at the outlet, and so this can effectively be done by setting the derivative of the density function at the outlet to zero.
-This is done simply by setting~\cite{mei_lattice_2000}
+There are some advanced methods to set a boundary to an arbitrary velocity value (including zero), such as the Zou-He boundary conditions~\cite{zou_pressure_1997}.
+However, in our case we are only concerned with having the flow disappear at the outlet, and so this can effectively be done by setting the derivative of the density function at the outlet to zero, by setting~\cite{mei_lattice_2000}
 \begin{align}
   F^{*}_{i}\left(x^{(j)}_{0}, v^{(j)}_{i}, t\right)
   &= F^{*}_{i}\left(x^{(j)}_{1},  v^{(j)}_{i}, t\right) \\
@@ -213,6 +211,9 @@ Both methods set $\Delta t = 1 lt$ and $\Delta x = 1 lx$, where, using the unit-
 To load 2D models into a simulation, we save a drawing of a CAD model at a tiff image (a raw image), and load the image into Julia using the \verb|TiffImages|~\cite{nagy_tlnagytiffimagesjl_2025} package.
 To load 3D models into a simulation, we save a CAD model as an STL file, we then convert that to a point cloud (a set of position values) using the \verb|stl-to-voxel| program~\cite{pederkoff_cpederkoffstl--voxel_2025}.
 In both cases, we get a point cloud that we can bin to either pixels or voxels for use in our simulation.
+
+For the simulations in \Cref{sec:results::speed-of-sound,sec:results::karman-vortex-street}, the boundary conditions perpendicular to the flow of the fluid was set to be periodic, for the simulations in \Cref{sec:results::optimal-wing-angle-of-attack}, the same boundaries were set to no-bounce conditions.
+Periodic boundary conditions caused interferance for the wing simulations due to the asymmetric nature of the flow around the wing (with respect to the axis of flow).
 
 
 
@@ -261,7 +262,7 @@ The weights associated with these velocities are~\cite{arumuga_perumal_review_20
 
 The lattice size for the simulations to follow was set to $(x,y, z) = (100, 50, 50)$.
 \section{Results}
-\subsection{Speed of Sound}
+\subsection{Speed of Sound}\label{sec:results::speed-of-sound}
 As noted in \Cref{sec:introduction::lattice-boltzmann-method}, the speed of sound for the lattice is defined as
 \[
   c_{s} = \frac{1}{\sqrt{3}} \frac{\Delta x}{\Delta t}
@@ -312,7 +313,7 @@ This discretization error averages out, but will contribute cumulatively to the 
 I've left more significant figures than usual in the mean values as a result of this.
 
 
-\subsection{K\'arm\'an Vortex Streets}
+\subsection{K\'arm\'an Vortex Streets}\label{sec:results::karman-vortex-street}
 A K\'arm\'an vortex street is a phenomen that can occurs behind objects placed in uniform streams, in which an area of alternating vortices appers~\cite{schatzman_model_1981}.
 
 In~\Cref{fig:vortex-all-2d}, we see the speed, curl, and velocity of fluid producing a K\'arm\'an vortex street behind a disk.
@@ -388,7 +389,7 @@ This could be due to the fact that although the Reynolds numbers were the same a
 
 \end{figure}
 
-\subsection{Optimal Wing Angle of Attack}
+\subsection{Optimal Wing Angle of Attack}\label{sec:results::optimal-wing-angle-of-attack}
 A wing, such as one on an airplane or an animal, produces lift and drag.
 Drag is the force on a wing in the direction of airflow.
 Lift is the force on a wing perpendicular to airflow.
