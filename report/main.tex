@@ -197,7 +197,7 @@ In this paper, the D2Q9 and D3Q15 methods are implemented.
 Both methods set $\Delta t = 1 lt$ and $\Delta x = 1 lx$, where, using the unit-notation defined in~\cite{sukop_lattice_2006}, $[lt]$ denotes lattice-time units and $[lx]$ denotes lattice-space units.
 
 
-To load 2D models into a simulation, we save a drawing of a CAD model at a tiff image (a raw image), and load the image into Julia using the \verb|TiffImages|~\cite{nagy_tlnagytiffimagesjl_2025} package.
+To load 2D models into a simulation, we save a drawing of a CAD model as a tiff image (a raw image), and load the image into Julia using the \verb|TiffImages|~\cite{nagy_tlnagytiffimagesjl_2025} package.
 To load 3D models into a simulation, we save a CAD model as an STL file, we then convert that to a point cloud (a set of position values) using the \verb|stl-to-voxel| program~\cite{pederkoff_cpederkoffstl--voxel_2025}.
 In both cases, we get a point cloud that we can bin to either pixels or voxels for use in our simulation.
 
