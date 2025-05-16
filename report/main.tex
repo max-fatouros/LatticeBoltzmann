@@ -1,7 +1,7 @@
 \input{packages}
 \addbibresource{references.bib}
 
-\title{Lattice Boltzmann Method in Three Dimensions}
+\title{Lattice Boltzmann Method in Two- and Three-Dimensions}
 
 \author{Max Fatouros}
 %% \affil{}
@@ -18,7 +18,9 @@
 \vspace{1cm}
 \begin{abstract}
     \baselineskip 1.75em
-    \noindent
+    \noindent The Lattice Boltzmann Method (LBM) is a fluid simulation method well suited to study subsonic flow in complex regimes.
+    This work presents a multi-threaded implementation of the LBM in two- and three-dimensions in the Julia programming language, and shows the results of fluid flow over various objects.
+    We reproduce the specific patterns of turbulence seen behind cylindrical objects knows as K\'arm\'an vortex streets, then we use the model to optimize the angle of attack for the 2D cross-section and 3D model of a wing imported directly from a 3D CAD model.
 \end{abstract}
 
 
@@ -38,17 +40,14 @@
 
 \section{Introduction}\label{sec:introduction}
 
-The Lattice Boltzman Method (LBM) is a computational fluid simulation method.
+The Lattice Boltzmann Method (LBM) is a computational fluid simulation method that discretizes of the Boltzmann equations.
+It is a method well suited for complex geometries at low (or below) mach number, and it relatively simple to parallelize because of the inherit locality of many of the computations ~\cite{bottcher_computational_2021,arumuga_perumal_review_2015}.
 
 \subsection{Lattice Gas Automata}
 
 Lattice Gas Automata (LGA) were the precursor to LBMs~\cite{sukop_lattice_2006}.
 
-LGA are cellular automata with individual particles on a lattice.
-
-These particles move, or \emph{stream}, at discrete velocites in strait lines, until the encounter another particle on the lattice.
-
-When two or more particles encounter one another, they \emph{collide}, and based on some rule set, change their velocities.
+LGA are cellular automata with individual particles on a lattice. These particles move, or \emph{stream}, at discrete velocites in strait lines, until the encounter another particle on the lattice. When two or more particles encounter one another, they \emph{collide}, and based on some rule set, change their velocities.
 
 
 \subsection{Lattice Boltzmann Method}\label{sec:introduction::lattice-boltzmann-method}
@@ -119,6 +118,15 @@ $\tau$ is defined as the characteristic time of the simulation, and is a paramet
   \nu = (\tau - 0.5)c_{s}^{2} \Delta t
 \end{equation}
 
+
+In practice, a dimensionless quantity known as the Reynolds number is instead used to quantify the characteristics of the fluid flow, defined as~\cite{bottcher_computational_2021}
+\begin{equation}
+  Re = \frac{uD}{\nu}
+\end{equation}
+where $u$ is the velocity of the fluid at the inlet, and $D$ is a ``characteristic length'' of the simulation, which varies upon definition, but in our case was the width of the lattice in the y-direction (perpendicular to the fluid flow in all our simulations).
+
+
+
 after \emph{colliding}, we \emph{stream} the particles, moving the position components of each density bin $F_{i}(\mathbf x, \mathbf v_{i}, t)$ in the direction of its velocity and stepping forward in time via
 \begin{equation}
   F_{i}(\mathbf x + \Delta t\mathbf v_{i}, \mathbf v_{i}, t + \Delta t)
@@ -126,10 +134,6 @@ after \emph{colliding}, we \emph{stream} the particles, moving the position comp
 \end{equation}
 where $\Delta t \mathbf v_{i}$ must be chosen such that $\mathbf x + \Delta t \mathbf v_{i}$ falls on a lattice site.
 In practice, the velocities are often chosen such $\Delta t$ can be set to $\Delta t = n$ with $n = 1$, or more generally with $n \in \mathbb{Z}_{+}$
-
-
-
-
 
 \subsection{Boundary Conditions}
 
@@ -302,7 +306,15 @@ I've left more significant figures than usual in the mean values as a result of 
 
 
 \subsection{K\'arm\'an Vortex Streets}
-K\'arm\'an vortex streets
+A K\'arm\'an vortex street is a phenomen that can occurs behind objects placed in uniform streams, in which an area of alternating vortices appers~\cite{schatzman_model_1981}.
+
+In~\Cref{fig:vortex-all-2d}, we see the speed, curl, and velocity of fluid producing a K\'arm\'an vortex street behind a disk.
+It is clear from the graph of the curl that there is an area or alternating vorticity behind the disk.
+
+\Cref{fig:vortex-speeds-2d} shows how the vortex street behaves at a variety of Reynolds numbers.
+As expected, the size and vorticity of the streams increased with increasing Reynolds number.
+
+
 \begin{figure}[h!]
     \centering
 
@@ -314,7 +326,7 @@ K\'arm\'an vortex streets
           We only show postive and negative values of the curl.
           This frame of the simulation is taken at $10^{4}$ steps, with a reynolds number of 300.
         }
-        \label{fig:speed-fit-2d}
+        \label{fig:vortex-all-2d}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{0.39\textwidth}
@@ -323,12 +335,23 @@ K\'arm\'an vortex streets
         \caption{
           Simulation at varying Reynolds numbers (shown in the grey boxes to the right of the subplots), 5000 steps.
         }
-        \label{fig:speed-fit-3d}
+        \label{fig:vortex-speeds-2d}
     \end{subfigure}
     \caption{
     }
-    \label{fig:speed-fit}
+    \label{fig:vortex-speeds}
 \end{figure}
+
+
+To be more quantitative, in~\Cref{fig:vortex} we measure the ``absolute vorticity'' of the simulation at different time frames.
+We define the absolute vorticity to be the sum of the absolute values of the curls at each lattice point.
+We see again that the (absolute) vorticity increases with the Reynolds number in both 2D and 3D.
+
+The 3D simulation was made of the flow behind a cylinder, instead of a disk.
+The K\'arm\'an vortex street is a two-dimensional phenomenon~\cite{schatzman_model_1981}, therefore using a sphere would not have produced the same effect.
+
+\Cref{fig:vortex-3d} shows some instabilities at a Reynolds number of 200, and had values diverging to infinity for values of 300.
+This could be due to the fact that although the Reynolds numbers were the same as those of the 2D simulation, the characteristic time was different between the two.
 
 \begin{figure}[h!]
     \centering
@@ -336,19 +359,24 @@ K\'arm\'an vortex streets
     \begin{subfigure}[t]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{vortex-2d}
-        \caption{}
-        \label{fig:speed-fit-2d}
+        \caption{
+          Absolute vorticity of the flow behind a disk.
+        }
+        \label{fig:vortex-2d}
     \end{subfigure}
     \hfill
     \begin{subfigure}[t]{0.49\textwidth}
         \centering
         \includegraphics[width=\textwidth]{vortex-3d}
-        \caption{}
-        \label{fig:speed-fit-3d}
+        \caption{
+          Absolute vorticity of the flow behind a cylinder.
+        }
+        \label{fig:vortex-3d}
     \end{subfigure}
     \caption{
+      Plots of the absolute vorticity over time steps in 2D and 3D.
     }
-    \label{fig:speed-fit}
+    \label{fig:vortex}
 
 \end{figure}
 
@@ -360,6 +388,15 @@ Lift is the force on a wing perpendicular to airflow.
 Lift can be increased by raising a wing, and increasing the angle of attack between the wing and the direction of travel, but raising a wing also has the effect of increasing drag.
 Therefore, it is a non-trivial task to find the optimal angle of attack to maximize the lift over drag ratio.
 
+\Cref{fig:wing} shows various angles of the 3D wing model used in the following simulations.
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\textwidth]{wing}
+    \caption{
+      Multiple views of the 3D wing model used in the 3D and 2D simulations.
+    }
+    \label{fig:wing}
+\end{figure}
 
 
 
@@ -398,7 +435,7 @@ To find the optimal angle of attack, also known as the critical angle, we varied
 At each angle we tested, the first half of the time steps were discarded, then at the remaining steps the force was averaged.
 From \Cref{fig:wing-2}, we see that the lift to drag ratio peaks for the 2D simulation at 14 degrees, while for the 3D simulation, it peaks at around 24 degrees.
 It should be noted the the 3D simulation was ran at half the Reynolds number of the 2D simulation since the 3D simulation was not stable at higher Reynolds number values.
-These values are within or close to the typical critical angle of attack of 15--20 degrees~\cite{clancy_aerodynamics_1996}.
+These values are close to the typical critical angle of attack of 15--20 degrees~\cite{clancy_aerodynamics_1996}.
 
 
 \begin{figure}[h!]
