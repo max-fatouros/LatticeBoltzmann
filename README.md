@@ -27,3 +27,10 @@ julia  -O3 -i --threads=auto --project=.  main.jl
 then all the function from the `workflows.jl` file will become available in the default namespace.
 
 I made all the figures from running these workflows.
+
+
+
+## Declaration of Originality
+
+My writing would not show up on the declaration when I tried appending it to the `main.pdf` in latex, so I have included it in the repo as a standalone file.
+[delaration](declaration-originality.pdf)
