@@ -24,6 +24,7 @@ function Config(
     )
 end
 
+#!format: off
 get_axis(simulation::SimulationD2, fig_element) = (
     Makie.Axis(
         fig_element;
@@ -35,6 +36,7 @@ get_axis(simulation::SimulationD3, fig_element) = (
         aspect=:data,
     )
 )
+#!format: on
 
 function get_aspect(simulation::SimulationD2)
     sizes = size(simulation.mass_densities)
@@ -135,8 +137,6 @@ function plot(
 
         values[:, 2:end-1, 2:end-1][object_mask] .= NaN
 
-
-
         return values
     end
 
@@ -154,8 +154,8 @@ function plot(
     )
 
     plot_objects(
-        simulation,
-        ax=config.ax
+        simulation;
+        ax=config.ax,
     )
 
     return fig
@@ -190,7 +190,6 @@ function plot_velocities(
         (x, y) -> Point2f(sim.momentum_densities[round(Int, x), round(Int, y), :])
     end
 
-
     CairoMakie.streamplot!(
         ax,
         field,
@@ -198,8 +197,7 @@ function plot_velocities(
         1:100;
         kwargs...,
     )
-    plot_objects(sim, ax=ax)
-
+    plot_objects(sim; ax=ax)
 
     return fig
 end
@@ -226,15 +224,15 @@ function plot_objects(
         sim = $simulation
         mask = zeros(
             Float64,
-            size(sim.object_mask)...
+            size(sim.object_mask)...,
         )
         mask .= NaN
-        mask[sim.object_mask .== 1] .= 1
+        mask[sim.object_mask.==1] .= 1
         return mask
     end
     CairoMakie.image!(
         ax,
-        mask,
+        mask;
         colormap=[:black],
         kwargs...,
     )
@@ -258,10 +256,10 @@ function plot_objects(
         # HACK: remove boundaries
         mask = zeros(
             Bool,
-            size(sim.object_mask)...
+            size(sim.object_mask)...,
         )
         mask .= 0
-        mask[sim.object_mask .== 1] .= 1
+        mask[sim.object_mask.==1] .= 1
         mask[:, :, 1] .= false
         mask[:, :, end] .= false
         mask[:, 1, :] .= false
@@ -270,12 +268,9 @@ function plot_objects(
         return mask
     end
 
-
-
-
     GLMakie.volume!(
         ax,
-        mask,
+        mask;
         colormap=[:transparent, :black],
         # nan_color=:transparent,
         # @lift(identity($simulation.object_mask));
