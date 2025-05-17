@@ -308,7 +308,6 @@ function animate!(
         config = Config()
     end
 
-    GLMakie.activate!(; float=true)
     fig = Figure()
     sim = Observable(simulation)
     if typeof(simulation) <: SimulationD2
