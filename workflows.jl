@@ -593,14 +593,16 @@ end
 # <<< plots
 # >>> animations
 function record_pulse_2D()
+    CairoMakie.activate!()
     simulation = make_pulse_2D()
     path = joinpath(animations_dir, "pulse-2d.mp4")
     return animate!(
         simulation,
-        plot_speeds;
+        Config(:speed);
         steps=600,
         filename=path,
-        show_every=100,
+        show_every=1,
     )
 end
+
 # <<< animations
