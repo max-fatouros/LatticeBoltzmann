@@ -10,6 +10,7 @@ mkpath(animations_dir)
 
 CairoMakie.activate!()
 
+# >>> utilities
 """
 wrap Makie.set_theme! so that revise updates this.
 """
@@ -23,6 +24,35 @@ function set_theme()
     )
 end
 set_theme()
+
+"""
+Returns a vector of fit parameters in increasing order.
+i.e. returns (p_1, p_2) for a_1 + a_2*X = Y
+"""
+function fit(X, Y)
+    U = hcat.(1, X)
+    P = inv(U' * U) * U' * Y
+    return P
+end
+
+function wing_forces(simulation)
+    forces = []
+    steps = 1000
+    prog = Progress(steps)
+    for i ∈ 1:steps
+        next!(prog)
+        update!(simulation)
+        force = get_forces(simulation)
+        push!(forces, force)
+    end
+    return forces
+end
+
+rad_to_ang(radians) = radians * (360 / (2 * pi))
+ang_to_rad(ang) = ang * ((2 * pi) / 360)
+
+# <<< utilities
+# >>> scenes
 
 function single_disk_scene(reynolds_number=200)
     simulation = SimulationD2Q9()
@@ -52,35 +82,6 @@ function single_cylinder_scene(reynolds_number=60)
     return simulation
 end
 
-function make_velocity_plots()
-    with_theme(
-        Theme(;
-            fontsize=20,
-            markersize=20,
-        ),
-    ) do
-        f = plot_velocities(SimulationD2Q9((10, 10)))
-        display(f)
-        path = joinpath(media_dir, "velocities_d2q9.png")
-        save(path, f)
-
-        f = plot_velocities(SimulationD3Q15((10, 10, 10)))
-        display(f)
-        path = joinpath(media_dir, "velocities_d3q15.png")
-        return save(path, f)
-    end
-end
-
-"""
-Returns a vector of fit parameters in increasing order.
-i.e. returns (p_1, p_2) for a_1 + a_2*X = Y
-"""
-function fit(X, Y)
-    U = hcat.(1, X)
-    P = inv(U' * U) * U' * Y
-    return P
-end
-
 function make_pulse_2D()
     simulation = SimulationD2Q9()
 
@@ -99,16 +100,81 @@ function make_pulse_3D()
     return simulation
 end
 
-function record_pulse_2D()
-    simulation = make_pulse_2D()
-    path = joinpath(animations_dir, "pulse-2d.mp4")
-    return animate!(
+function wing_scene_2d(;
+    reynolds_number=500,
+    angle=20,
+)
+    simulation = SimulationD2Q9()
+    @info "initiated simulation"
+
+    point_cloud = get_point_cloud("wing.tiff")
+    @info "loaded point cloud"
+
+    # add_source!(simulation, (5, :), 1, 0.25)
+    add_source!(simulation, (5, 5:95), 1, 0.1)
+    set_reynolds_number!(simulation, reynolds_number)
+
+    simulation.object_mask .= 0
+    simulation.object_mask[1:end, 1] .= true
+    simulation.object_mask[1:end, end] .= true
+    add_point_cloud(
         simulation,
-        plot_speeds;
-        steps=600,
-        filename=path,
-        show_every=100,
+        point_cloud;
+        position=(75, 50),
+        rotation=pi / 2 + ang_to_rad(angle),
+        side_length=75,
     )
+    return simulation
+end
+
+function wing_scene_3d(;
+    reynolds_number=250,
+    angle=20,
+)
+    GLMakie.activate!()
+    simulation = SimulationD3Q15((100, 50, 50))
+    @info "initiated simulation"
+
+    point_cloud = load("wing_point_cloud")
+    @info "loaded point cloud"
+
+    # add_source!(simulation, (5, :), 1, 0.25)
+    add_source!(simulation, (5, 5:45, 5:45), 1, 0.1)
+    set_reynolds_number!(simulation, reynolds_number)
+
+    simulation.object_mask .= 0
+    simulation.object_mask[:, :, 1] .= true
+    simulation.object_mask[:, :, end] .= true
+    simulation.object_mask[:, 1, :] .= true
+    simulation.object_mask[:, end, :] .= true
+    add_point_cloud(
+        simulation,
+        point_cloud;
+        position=(25, 25, 25),
+        rotation=(0, -ang_to_rad(angle), 0),
+        side_length=40,
+    )
+    return simulation
+end
+# <<< scenes
+# >>> plots
+function make_velocity_plots()
+    with_theme(
+        Theme(;
+            fontsize=20,
+            markersize=20,
+        ),
+    ) do
+        f = plot_velocities(SimulationD2Q9((10, 10)))
+        display(f)
+        path = joinpath(media_dir, "velocities_d2q9.png")
+        save(path, f)
+
+        f = plot_velocities(SimulationD3Q15((10, 10, 10)))
+        display(f)
+        path = joinpath(media_dir, "velocities_d3q15.png")
+        return save(path, f)
+    end
 end
 
 function plot_speed_of_sound_fit(dimensions=2)
@@ -363,7 +429,7 @@ function plot_wing_sims(filename="wing_2d")
         Box(fig[i, 2]; color=:gray90)
         Label(
             fig[i, 2],
-            L"%$(angles[i])$^\circ$",
+            L"%$(angles[i])$^\circ$";
             rotation=pi / 2,
             tellheight=false,
         )
@@ -377,73 +443,6 @@ function plot_wing_sims(filename="wing_2d")
     return fig
 end
 
-rad_to_ang(radians) = radians * (360 / (2 * pi))
-ang_to_rad(ang) = ang * ((2 * pi) / 360)
-
-
-
-function wing_scene_2d(;
-    reynolds_number=500,
-    angle=20,
-)
-    simulation = SimulationD2Q9()
-    @info "initiated simulation"
-
-    point_cloud = get_point_cloud("wing.tiff")
-    @info "loaded point cloud"
-
-    # add_source!(simulation, (5, :), 1, 0.25)
-    add_source!(simulation, (5, 5:95), 1, 0.1)
-    set_reynolds_number!(simulation, reynolds_number)
-
-
-    simulation.object_mask .= 0
-    simulation.object_mask[1:end, 1] .= true
-    simulation.object_mask[1:end, end] .= true
-    add_point_cloud(
-        simulation,
-        point_cloud;
-        position=(75, 50),
-        rotation=pi / 2 + ang_to_rad(angle),
-        side_length=75,
-    )
-    return simulation
-end
-
-
-function wing_scene_3d(;
-    reynolds_number=250,
-    angle=20,
-)
-
-    GLMakie.activate!()
-    simulation = SimulationD3Q15((100, 50, 50))
-    @info "initiated simulation"
-
-    point_cloud = load("wing_point_cloud")
-    @info "loaded point cloud"
-
-    # add_source!(simulation, (5, :), 1, 0.25)
-    add_source!(simulation, (5, 5:45, 5:45), 1, 0.1)
-    set_reynolds_number!(simulation, reynolds_number)
-
-
-    simulation.object_mask .= 0
-    simulation.object_mask[:, :, 1] .= true
-    simulation.object_mask[:, :, end] .= true
-    simulation.object_mask[:, 1, :] .= true
-    simulation.object_mask[:, end, :] .= true
-    add_point_cloud(
-        simulation,
-        point_cloud;
-        position=(25, 25, 25),
-        rotation=(0, -ang_to_rad(angle), 0),
-        side_length=40,
-    )
-    return simulation
-end
-
-
 function angle_of_attack_2d(;
     reynolds_number=500,
     steps=10_000,
@@ -452,30 +451,28 @@ function angle_of_attack_2d(;
     simulations = Array{Simulation}(undef, length(angles))
     ratios = zeros(length(angles))
     prog = Progress(length(angles))
-    Threads.@threads for i in 1:length(angles)
-
-        simulation = wing_scene_2d(
+    Threads.@threads for i ∈ 1:length(angles)
+        simulation = wing_scene_2d(;
             reynolds_number=reynolds_number,
             angle=angles[i],
         )
 
         forces = []
         next!(prog)
-        for _ in 1:steps
+        for _ ∈ 1:steps
             singlethreaded_update!(simulation)
             force = get_forces(simulation)
             push!(forces, force)
         end
-        drag = mean(slice(forces, 1)[steps ÷ 2:end])
-        lift = mean(slice(forces, 2)[steps ÷ 2:end])
+        drag = mean(slice(forces, 1)[steps÷2:end])
+        lift = mean(slice(forces, 2)[steps÷2:end])
         ratio = lift / drag
         ratios[i] = ratio
         simulations[i] = simulation
     end
 
-
     fig = Figure()
-    ax = Makie.Axis(fig[1,1])
+    ax = Makie.Axis(fig[1, 1])
     Makie.scatterlines!(ax, angles, ratios)
     ax.xlabel = "angle of attack [degrees]"
     ax.ylabel = "lift / drag"
@@ -495,30 +492,28 @@ function angle_of_attack_2d(;
     simulations = Array{Simulation}(undef, length(angles))
     ratios = zeros(length(angles))
     prog = Progress(length(angles))
-    Threads.@threads for i in 1:length(angles)
-
-        simulation = wing_scene_2d(
+    Threads.@threads for i ∈ 1:length(angles)
+        simulation = wing_scene_2d(;
             reynolds_number=reynolds_number,
             angle=angles[i],
         )
 
         forces = []
         next!(prog)
-        for _ in 1:steps
+        for _ ∈ 1:steps
             singlethreaded_update!(simulation)
             force = get_forces(simulation)
             push!(forces, force)
         end
-        drag = mean(slice(forces, 1)[steps ÷ 2:end])
-        lift = mean(slice(forces, 2)[steps ÷ 2:end])
+        drag = mean(slice(forces, 1)[steps÷2:end])
+        lift = mean(slice(forces, 2)[steps÷2:end])
         ratio = lift / drag
         ratios[i] = ratio
         simulations[i] = simulation
     end
 
-
     fig = Figure()
-    ax = Makie.Axis(fig[1,1])
+    ax = Makie.Axis(fig[1, 1])
     Makie.scatterlines!(ax, angles, ratios)
     ax.xlabel = "angle of attack [degrees]"
     ax.ylabel = "lift / drag"
@@ -537,29 +532,27 @@ function angle_of_attack_3d(;
     angles = 0:6:30
     ratios = zeros(length(angles))
     prog = Progress(length(angles))
-    Threads.@threads for i in 1:length(angles)
-
-        simulation = wing_scene_3d(
+    Threads.@threads for i ∈ 1:length(angles)
+        simulation = wing_scene_3d(;
             reynolds_number=reynolds_number,
             angle=angles[i],
         )
 
         forces = []
         next!(prog)
-        for _ in 1:steps
+        for _ ∈ 1:steps
             singlethreaded_update!(simulation)
             force = get_forces(simulation)
             push!(forces, force)
         end
-        drag = mean(slice(forces, 1)[steps ÷ 2:end])
-        lift = mean(slice(forces, 3)[steps ÷ 2:end])
+        drag = mean(slice(forces, 1)[steps÷2:end])
+        lift = mean(slice(forces, 3)[steps÷2:end])
         ratio = lift / drag
         ratios[i] = ratio
     end
 
-
     fig = Figure()
-    ax = Makie.Axis(fig[1,1])
+    ax = Makie.Axis(fig[1, 1])
     Makie.scatterlines!(ax, angles, ratios)
     ax.xlabel = "angle of attack [degrees]"
     ax.ylabel = "lift / drag"
@@ -569,23 +562,6 @@ function angle_of_attack_3d(;
 
     return fig
 end
-
-
-
-function wing_forces(simulation)
-    forces = []
-    steps = 1000
-    prog = Progress(steps)
-    for i ∈ 1:steps
-        next!(prog)
-        update!(simulation)
-        force = get_forces(simulation)
-        push!(forces, force)
-    end
-    return forces
-end
-
-
 
 slice(tuples, i) = [tuple[i] for tuple ∈ tuples]
 function slice(tuples, i, width)
@@ -602,10 +578,8 @@ function plot_forces(forces)
 
     width = 10
 
-
     xs = slice(forces, 1, width)
     ys = slice(forces, 2, width)
-
 
     Makie.lines!(ax, xs; label="drag")
     Makie.lines!(ax, ys; label="lift")
@@ -613,6 +587,20 @@ function plot_forces(forces)
 
     @show mean(ys) / mean(xs)
 
-
     return fig
 end
+
+# <<< plots
+# >>> animations
+function record_pulse_2D()
+    simulation = make_pulse_2D()
+    path = joinpath(animations_dir, "pulse-2d.mp4")
+    return animate!(
+        simulation,
+        plot_speeds;
+        steps=600,
+        filename=path,
+        show_every=100,
+    )
+end
+# <<< animations
