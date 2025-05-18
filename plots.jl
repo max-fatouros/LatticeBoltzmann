@@ -298,6 +298,7 @@ function animate!(
     steps=100,
     filename="animation.mp4",
     show_every=10,
+    kwargs...,
 )
     if isnothing(config)
         config = Config()
@@ -317,6 +318,8 @@ function animate!(
             config,
         )
     )
+
+    rowsize!(fig.layout, 1, Aspect(1, get_aspect(simulation)))
     resize_to_layout!(fig)
 
     prog = Progress(steps)
@@ -324,11 +327,12 @@ function animate!(
     record(
         fig,
         filename,
-        1:(steps÷show_every),
+        1:(steps÷show_every);
+        kwargs...,
     ) do t
         for _ ∈ 1:show_every
             next!(prog)
-            multithreaded_update!(sim[])
+            update!(sim[])
         end
         notify(sim)
         return sleep(1e-3)
