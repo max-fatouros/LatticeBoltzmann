@@ -592,7 +592,7 @@ end
 
 # <<< plots
 # >>> animations
-function record_pulse_2D()
+function animate_pulse_2D()
     CairoMakie.activate!()
     simulation = make_pulse_2D()
     path = joinpath(animations_dir, "pulse-2d.mp4")
@@ -606,7 +606,7 @@ function record_pulse_2D()
 end
 
 
-function record_disk()
+function animate_disk()
     sim = single_disk_scene()
 
     path = joinpath(animations_dir, "disk.mp4")
