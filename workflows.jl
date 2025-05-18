@@ -620,5 +620,182 @@ function animate_disk()
 end
 
 
+function animate_all_plots!(sim)
+
+    animate!(
+        sim,
+        [
+            Config(:speed); Config(:curl); Config(:velocity);;
+        ];
+        steps=1000,
+        show_every=50,
+        density=0.75,
+        arrow_size=10,
+        maxsteps=5000,
+    )
+end
+
+function animate_reynolds_numbers()
+    fig = Figure()
+    CairoMakie.activate!()
+
+
+    sims = [
+        single_disk_scene(reynolds_number)
+        for reynolds_number ∈ (
+            25,
+            50,
+            100,
+            200,
+            300,
+        )
+    ]
+
+    sim_observables = [
+        Observable(sim)
+        for sim in sims
+    ]
+    axes = [
+        Makie.Axis(fig[i, 1])
+        for i in 1:length(sims)
+    ]
+    for (i,sim) in enumerate(sim_observables)
+        @lift(
+            plot(
+                $sim,
+                Config(:speed, ax=axes[i])
+            )
+        )
+    end
+
+
+    for (i, ax) in enumerate(axes)
+        ax.ylabel = L"y $[lx]$"
+        if i == length(axes)
+            ax.xlabel = L"x $[lx]$"
+        else
+            ax.xticklabelsvisible = false
+        end
+        Box(fig[i, 2]; color=:gray90)
+        Label(
+            fig[i, 2],
+            "$(round(Int, get_reynolds_number(sims[i])))";
+            rotation=pi / 2,
+            tellheight=false,
+        )
+    end
+
+    for i in 1:length(fig.layout.rowsizes)
+        rowsize!(fig.layout, i, Aspect(1, 0.25))
+    end
+
+    resize_to_layout!(fig)
+
+    steps = 30_000
+    show_every = 50
+    prog = Progress(steps ÷ show_every)
+
+    path = joinpath(animations_dir, "reynolds.mp4")
+    record(
+        fig,
+        path,
+        1:(steps÷show_every);
+    ) do t
+        next!(prog)
+        for _ ∈ 1:show_every
+            Threads.@threads for sim in sim_observables
+                singlethreaded_update!(sim[])
+            end
+        end
+        for sim in sim_observables
+            notify(sim)
+        end
+    end
+    return
+end
+
+
+function animate_wing_angles()
+    fig = Figure()
+    CairoMakie.activate!()
+
+    angles = (
+        0,
+        10,
+        20,
+        30
+    )
+
+    sims = [
+        wing_scene_2d(reynolds_number=500, angle=angle)
+        for angle in angles
+    ]
+
+    sim_observables = [
+        Observable(sim)
+        for sim in sims
+    ]
+    axes = [
+        Makie.Axis(fig[i, 1])
+        for i in 1:length(sims)
+    ]
+    for (i,sim) in enumerate(sim_observables)
+        @lift(
+            plot(
+                $sim,
+                Config(:speed, ax=axes[i])
+            )
+        )
+    end
+
+
+    for (i, ax) in enumerate(axes)
+        ax.ylabel = L"y $[lx]$"
+        if i == length(axes)
+            ax.xlabel = L"x $[lx]$"
+        else
+            ax.xticklabelsvisible = false
+        end
+        Box(fig[i, 2]; color=:gray90)
+        Label(
+            fig[i, 2],
+            "$(round(Int, angles[i]))";
+            rotation=pi / 2,
+            tellheight=false,
+        )
+    end
+
+    for i in 1:length(fig.layout.rowsizes)
+        rowsize!(fig.layout, i, Aspect(1, 0.25))
+    end
+
+    resize_to_layout!(fig)
+
+
+    steps = 30_000
+    show_every = 50
+    prog = Progress(steps ÷ show_every)
+
+    path = joinpath(animations_dir, "wing_angles.mp4")
+    record(
+        fig,
+        path,
+        1:(steps÷show_every);
+    ) do t
+        next!(prog)
+        for _ ∈ 1:show_every
+            Threads.@threads for sim in sim_observables
+                singlethreaded_update!(sim[])
+            end
+        end
+        for sim in sim_observables
+            notify(sim)
+        end
+    end
+    return
+end
+
+
+
 
 # <<< animations

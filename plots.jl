@@ -172,14 +172,19 @@ function plot(
 end
 
 function plot_velocities(
-    simulation::Observable{<:SimulationD2};
-    ax=nothing,
+    simulation::Observable{<:SimulationD2},
+    config=nothing;
     kwargs...,
 )
+
+    if isnothing(config)
+        config = Config()
+    end
+
     fig = nothing
-    if isnothing(ax)
+    if isnothing(config.ax)
         fig = Figure()
-        ax = CairoMakie.Axis(fig[1, 1];)
+        config.ax = CairoMakie.Axis(fig[1, 1];)
     end
 
     defaults = (; colormap=:viridis)
@@ -191,23 +196,23 @@ function plot_velocities(
     end
 
     CairoMakie.streamplot!(
-        ax,
+        config.ax,
         field,
         1:400,
         1:100;
         kwargs...,
     )
-    plot_objects(sim; ax=ax)
+    plot_objects(sim; ax=config.ax)
 
     return fig
 end
 
 function plot_velocities(
-    simulation::Simulation;
-    ax=nothing,
+    simulation::Simulation,
+    config=nothing;
     kwargs...,
 )
-    return plot_velocities(Observable(simulation); ax=ax, kwargs...)
+    return plot_velocities(Observable(simulation), config; kwargs...)
 end
 
 function plot_objects(
@@ -238,6 +243,9 @@ function plot_objects(
     )
     return fig
 end
+
+
+
 
 function plot_objects(
     simulation::Observable{<:SimulationD3};
@@ -294,36 +302,58 @@ end
 # TODO: pass plot function
 function animate!(
     simulation::Simulation,
-    config=nothing;
+    configs=nothing;
     steps=100,
     filename="animation.mp4",
     show_every=10,
     kwargs...,
 )
-    if isnothing(config)
-        config = Config()
+    if isnothing(configs)
+        configs = Config()
+    end
+
+    if !(typeof(configs) <: Array)
+        configs = [configs;;]
     end
 
     fig = Figure()
     sim = Observable(simulation)
-    if typeof(simulation) <: SimulationD2
-        config.ax = CairoMakie.Axis(fig[1, 1]; aspect=DataAspect())
-    elseif typeof(simulation) <: SimulationD3
-        config.ax = Axis3(fig[1, 1]; aspect=:data)
+
+    for index ∈ CartesianIndices(configs)
+        configs[index].ax = get_axis(simulation, fig[Tuple(index)...])
+        plot_function = nothing
+        if :velocity == configs[index].property
+            plot_function = plot_velocities
+        else
+            plot_function = plot
+        end
+
+        @lift(
+            plot_function(
+                $sim,
+                configs[index];
+                kwargs...,
+            )
+        )
+
+        right_grid_index = (Tuple(index) .+ (0, 1))
+        Box(fig[right_grid_index...]; color=:gray90)
+        Label(
+            fig[right_grid_index...],
+            "$(configs[index].property)";
+            rotation=pi / 2,
+            tellheight=false,
+        )
     end
 
-    @lift(
-        plot(
-            $sim,
-            config,
-        )
-    )
 
-    rowsize!(fig.layout, 1, Aspect(1, get_aspect(simulation)))
+    for i in 1:length(fig.layout.rowsizes)
+        rowsize!(fig.layout, i, Aspect(1, get_aspect(simulation)))
+    end
+
     resize_to_layout!(fig)
 
     prog = Progress(steps)
-
     record(
         fig,
         filename,
@@ -423,9 +453,9 @@ function animate_live!(
         )
     end
 
-    # for i in 1:length(fig.layout.rowsizes)
-    #     rowsize!(fig.layout, i, Aspect(1, get_aspect(simulation)))
-    # end
+    for i in 1:length(fig.layout.rowsizes)
+        rowsize!(fig.layout, i, Aspect(1, get_aspect(simulation)))
+    end
 
     resize_to_layout!(fig)
     display(fig)
