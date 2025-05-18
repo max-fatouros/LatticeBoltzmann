@@ -54,7 +54,7 @@ ang_to_rad(ang) = ang * ((2 * pi) / 360)
 # <<< utilities
 # >>> scenes
 
-function single_disk_scene(reynolds_number=200)
+function single_disk_scene(reynolds_number=300)
     simulation = SimulationD2Q9()
 
     add_sphere!(
