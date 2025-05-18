@@ -605,4 +605,20 @@ function record_pulse_2D()
     )
 end
 
+
+function record_disk()
+    sim = single_disk_scene()
+
+    path = joinpath(animations_dir, "disk.mp4")
+    run!(sim, steps=10_000)
+    animate!(
+        sim,
+        steps=10_000,
+        show_every=50,
+        filename=path,
+    )
+end
+
+
+
 # <<< animations
