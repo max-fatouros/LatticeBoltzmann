@@ -558,15 +558,22 @@ function set_no_bounce_boundaries!(simulation::SimulationD3Q15)
     return
 end
 
-@views function compute_momentum_densities!(simulation::SimulationD2)
-    @inbounds for i ∈ axes(simulation.velocity_distribution, 2)
-        for j ∈ axes(simulation.velocity_distribution, 1)
+function compute_momentum_densities!(simulation::SimulationD2)
+    @inbounds for
+        j ∈ axes(simulation.velocity_distribution, 2),
+        k in axes(simulation.velocity_distribution, 1)
+
+        simulation.momentum_densities[k, j, 1] = 0
+        simulation.momentum_densities[k, j, 2] = 0
+        for i in axes(simulation.velocity_distribution, 3)
             #! format: off
-            simulation.momentum_densities[j, i, :] = (
-                sum(
-                    simulation.velocities
-                    .* simulation.velocity_distribution[j, i, :],
-                )
+            @views simulation.momentum_densities[k, j, 1] += (
+                simulation.velocities[i][1]
+                * simulation.velocity_distribution[k, j, i]
+            )
+            @views simulation.momentum_densities[k, j, 2] += (
+                simulation.velocities[i][2]
+                * simulation.velocity_distribution[k, j, i]
             )
             #! format: on
         end
@@ -574,19 +581,30 @@ end
     return
 end
 
-@views function compute_momentum_densities!(simulation::SimulationD3)
-    @inbounds for i ∈ axes(simulation.velocity_distribution, 3)
-        for j ∈ axes(simulation.velocity_distribution, 2)
-            for k ∈ axes(simulation.velocity_distribution, 1)
-                #! format: off
-                simulation.momentum_densities[k, j, i, :] = (
-                    sum(
-                        simulation.velocities
-                        .* simulation.velocity_distribution[k, j, i, :],
-                    )
-                )
-                #! format: on
-            end
+function compute_momentum_densities!(simulation::SimulationD3)
+    @inbounds for
+        i in axes(simulation.velocity_distribution, 3),
+        j in axes(simulation.velocity_distribution, 2),
+        k in axes(simulation.velocity_distribution, 1)
+
+        simulation.momentum_densities[k, j, i, 1] = 0
+        simulation.momentum_densities[k, j, i, 2] = 0
+        simulation.momentum_densities[k, j, i, 3] = 0
+        for m in axes(simulation.velocity_distribution, 4)
+            #! format: off
+            simulation.momentum_densities[k, j, i, 1] += (
+                simulation.velocities[m][1]
+                * simulation.velocity_distribution[k, j, i, m]
+            )
+            simulation.momentum_densities[k, j, i, 2] += (
+                simulation.velocities[m][2]
+                * simulation.velocity_distribution[k, j, i, m]
+            )
+            simulation.momentum_densities[k, j, i, 3] += (
+                simulation.velocities[m][3]
+                * simulation.velocity_distribution[k, j, i, m]
+            )
+            #! format: on
         end
     end
     return
@@ -789,16 +807,22 @@ function compute_momentum_densities!(
     chunk_start::Int,
     chunk_end::Int,
 )
-    @inbounds for i ∈ chunk_start:chunk_end
-        for j ∈ axes(simulation.velocity_distribution, 1)
-            #! format: off
-            @views simulation.momentum_densities[j, i, :] = (
-                sum(
-                    simulation.velocities
-                    .* simulation.velocity_distribution[j, i, :],
+    @inbounds for j ∈ chunk_start:chunk_end
+        for k in axes(simulation.velocity_distribution, 1)
+            simulation.momentum_densities[k, j, 1] = 0
+            simulation.momentum_densities[k, j, 2] = 0
+            for i in axes(simulation.velocity_distribution, 3)
+                #! format: off
+                @views simulation.momentum_densities[k, j, 1] += (
+                    simulation.velocities[i][1]
+                    * simulation.velocity_distribution[k, j, i]
                 )
-            )
-            #! format: on
+                @views simulation.momentum_densities[k, j, 2] += (
+                    simulation.velocities[i][2]
+                    * simulation.velocity_distribution[k, j, i]
+                )
+                #! format: on
+            end
         end
     end
     return
@@ -809,18 +833,28 @@ function compute_momentum_densities!(
     chunk_start::Int,
     chunk_end::Int,
 )
-    @inbounds for i ∈ chunk_start:chunk_end
-        for j ∈ axes(simulation.velocity_distribution, 2)
-            for k ∈ axes(simulation.velocity_distribution, 1)
-                #! format: off
-                @views simulation.momentum_densities[k, j, i, :] = (
-                    sum(
-                        simulation.velocities
-                        .* simulation.velocity_distribution[k, j, i, :],
-                    )
-                )
-                #! format: on
-            end
+    @inbounds for
+        i in chunk_start:chunk_end,
+        j in axes(simulation.velocity_distribution, 2),
+        k in axes(simulation.velocity_distribution, 1)
+        simulation.momentum_densities[k, j, i, 1] = 0
+        simulation.momentum_densities[k, j, i, 2] = 0
+        simulation.momentum_densities[k, j, i, 3] = 0
+        for m in axes(simulation.velocity_distribution, 4)
+            #! format: off
+            simulation.momentum_densities[k, j, i, 1] += (
+                simulation.velocities[m][1]
+                * simulation.velocity_distribution[k, j, i, m]
+            )
+            simulation.momentum_densities[k, j, i, 2] += (
+                simulation.velocities[m][2]
+                * simulation.velocity_distribution[k, j, i, m]
+            )
+            simulation.momentum_densities[k, j, i, 3] += (
+                simulation.velocities[m][3]
+                * simulation.velocity_distribution[k, j, i, m]
+            )
+            #! format: on
         end
     end
     return
@@ -1049,6 +1083,7 @@ function run!(
     for i ∈ 1:steps
         next!(prog)
         update!(simulation)
+        # multithreaded_update!(simulation)
     end
     return
 end
