@@ -612,14 +612,13 @@ function animate_pulse_2D()
     )
 end
 
-
 function animate_disk()
     sim = single_disk_scene()
 
     path = joinpath(animations_dir, "disk.mp4")
-    run!(sim, steps=10_000)
-    animate!(
-        sim,
+    run!(sim; steps=10_000)
+    return animate!(
+        sim;
         steps=10_000,
         show_every=50,
         filename=path,
@@ -651,7 +650,6 @@ function animate_reynolds_numbers()
     fig = Figure()
     CairoMakie.activate!()
 
-
     sims = [
         single_disk_scene(reynolds_number)
         for reynolds_number ∈ (
@@ -665,23 +663,22 @@ function animate_reynolds_numbers()
 
     sim_observables = [
         Observable(sim)
-        for sim in sims
+        for sim ∈ sims
     ]
     axes = [
         Makie.Axis(fig[i, 1])
-        for i in 1:length(sims)
+        for i ∈ 1:length(sims)
     ]
-    for (i,sim) in enumerate(sim_observables)
+    for (i, sim) ∈ enumerate(sim_observables)
         @lift(
             plot(
                 $sim,
-                Config(:speed, ax=axes[i])
+                Config(:speed; ax=axes[i]),
             )
         )
     end
 
-
-    for (i, ax) in enumerate(axes)
+    for (i, ax) ∈ enumerate(axes)
         ax.ylabel = L"y $[lx]$"
         if i == length(axes)
             ax.xlabel = L"x $[lx]$"
@@ -697,7 +694,7 @@ function animate_reynolds_numbers()
         )
     end
 
-    for i in 1:length(fig.layout.rowsizes)
+    for i ∈ 1:length(fig.layout.rowsizes)
         rowsize!(fig.layout, i, Aspect(1, 0.25))
     end
 
@@ -715,17 +712,16 @@ function animate_reynolds_numbers()
     ) do t
         next!(prog)
         for _ ∈ 1:show_every
-            Threads.@threads for sim in sim_observables
+            Threads.@threads for sim ∈ sim_observables
                 singlethreaded_update!(sim[])
             end
         end
-        for sim in sim_observables
+        for sim ∈ sim_observables
             notify(sim)
         end
     end
     return
 end
-
 
 function animate_wing_angles()
     fig = Figure()
@@ -735,33 +731,32 @@ function animate_wing_angles()
         0,
         10,
         20,
-        30
+        30,
     )
 
     sims = [
-        wing_scene_2d(reynolds_number=500, angle=angle)
-        for angle in angles
+        wing_scene_2d(; reynolds_number=500, angle=angle)
+        for angle ∈ angles
     ]
 
     sim_observables = [
         Observable(sim)
-        for sim in sims
+        for sim ∈ sims
     ]
     axes = [
         Makie.Axis(fig[i, 1])
-        for i in 1:length(sims)
+        for i ∈ 1:length(sims)
     ]
-    for (i,sim) in enumerate(sim_observables)
+    for (i, sim) ∈ enumerate(sim_observables)
         @lift(
             plot(
                 $sim,
-                Config(:speed, ax=axes[i])
+                Config(:speed; ax=axes[i]),
             )
         )
     end
 
-
-    for (i, ax) in enumerate(axes)
+    for (i, ax) ∈ enumerate(axes)
         ax.ylabel = L"y $[lx]$"
         if i == length(axes)
             ax.xlabel = L"x $[lx]$"
@@ -777,12 +772,11 @@ function animate_wing_angles()
         )
     end
 
-    for i in 1:length(fig.layout.rowsizes)
+    for i ∈ 1:length(fig.layout.rowsizes)
         rowsize!(fig.layout, i, Aspect(1, 0.25))
     end
 
     resize_to_layout!(fig)
-
 
     steps = 30_000
     show_every = 50
@@ -796,18 +790,15 @@ function animate_wing_angles()
     ) do t
         next!(prog)
         for _ ∈ 1:show_every
-            Threads.@threads for sim in sim_observables
+            Threads.@threads for sim ∈ sim_observables
                 singlethreaded_update!(sim[])
             end
         end
-        for sim in sim_observables
+        for sim ∈ sim_observables
             notify(sim)
         end
     end
     return
 end
-
-
-
 
 # <<< animations
