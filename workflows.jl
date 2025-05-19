@@ -625,8 +625,8 @@ function animate_disk()
     )
 end
 
-function animate_all_plots!(sim)
-    path = joinpath(animations_dir, "vortex_all.mp4")
+function animate_all_plots!(sim, filename)
+    path = joinpath(animations_dir, filename)
     animate!(
         sim,
         [
@@ -640,8 +640,8 @@ function animate_all_plots!(sim)
             stepsize=1
         );;
         ];
-        steps=10_000,
-        show_every=50,
+        steps=15_000,
+        show_every=20,
         filename=path,
     )
     return
