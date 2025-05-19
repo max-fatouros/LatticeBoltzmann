@@ -355,8 +355,10 @@ function animate!(
 
     configs[end].ax.xlabel = "x [lx]"
 
-    for i ∈ 1:length(fig.layout.rowsizes)
-        rowsize!(fig.layout, i, Aspect(1, get_aspect(simulation)))
+    if 2 <= length(fig.layout.rowsizes)
+        for i ∈ 1:length(fig.layout.rowsizes)
+            rowsize!(fig.layout, i, Aspect(1, get_aspect(simulation)))
+        end
     end
 
     resize_to_layout!(fig)
@@ -461,8 +463,10 @@ function animate_live!(
         )
     end
 
-    for i ∈ 1:length(fig.layout.rowsizes)
-        rowsize!(fig.layout, i, Aspect(1, get_aspect(simulation)))
+    if 2 <= length(fig.layout.rowsizes)
+        for i ∈ 1:length(fig.layout.rowsizes)
+            rowsize!(fig.layout, i, Aspect(1, get_aspect(simulation)))
+        end
     end
 
     resize_to_layout!(fig)
