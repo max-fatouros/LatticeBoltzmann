@@ -128,6 +128,15 @@ function plot(
         get_property = get_curls
     end
 
+
+
+    defaults = (;
+        algorithm=:mip,
+        colormap=:viridis,
+        nan_color=:black,
+    )
+    config.kwargs = merge(defaults, config.kwargs)
+
     values = @lift begin
         sim = $simulation
         values = get_property(sim)
@@ -137,15 +146,17 @@ function plot(
 
         values[:, 2:end-1, 2:end-1][object_mask] .= NaN
 
+
+        if :iso == config.kwargs.algorithm
+            values[:, 1, :] .= 0
+            values[:, end, :] .= 0
+            values[:, :, 1] .= 0
+            values[:, :, end] .= 0
+        end
+
         return values
     end
 
-    defaults = (;
-        algorithm=:mip,
-        colormap=:viridis,
-        nan_color=:black,
-    )
-    config.kwargs = merge(defaults, config.kwargs)
 
     GLMakie.volume!(
         config.ax,
@@ -354,6 +365,10 @@ function animate!(
     end
 
     configs[end].ax.xlabel = "x [lx]"
+
+    if typeof(simulation) <: SimulationD3
+        configs[end].ax.zlabel = "z [lx]"
+    end
 
     if 2 <= length(fig.layout.rowsizes)
         for i ∈ 1:length(fig.layout.rowsizes)

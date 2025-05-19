@@ -54,13 +54,13 @@ ang_to_rad(ang) = ang * ((2 * pi) / 360)
 # <<< utilities
 # >>> scenes
 
-function single_disk_scene(reynolds_number=300)
-    simulation = SimulationD2Q9()
+function single_disk_scene(;dimensions=(400, 100), reynolds_number=300)
+    simulation = SimulationD2Q9(dimensions)
 
     add_sphere!(
         simulation;
-        position=(50, 50),
-        radius=25,
+        position=(dimensions[2] ÷ 2, dimensions[2] ÷ 2),
+        radius=dimensions[2] ÷ 4,
     )
 
     add_source!(simulation, (5, :), 1, 0.2)
@@ -724,6 +724,78 @@ function animate_reynolds_numbers()
     return
 end
 
+
+function animate_two_sizes()
+    fig = Figure()
+    CairoMakie.activate!()
+
+    sims = [
+        single_disk_scene(dimensions=(400, 100)),
+        single_disk_scene(dimensions=(800, 200)),
+    ]
+
+    sim_observables = [
+        Observable(sim)
+        for sim ∈ sims
+    ]
+    axes = [
+        Makie.Axis(fig[i, 1])
+        for i ∈ 1:length(sims)
+    ]
+    for (i, sim) ∈ enumerate(sim_observables)
+        @lift(
+            plot(
+                $sim,
+                Config(:speed; ax=axes[i]),
+            )
+        )
+    end
+
+    for (i, ax) ∈ enumerate(axes)
+        ax.ylabel = L"y $[lx]$"
+        if i == length(axes)
+            ax.xlabel = L"x $[lx]$"
+        else
+            ax.xticklabelsvisible = false
+        end
+        Box(fig[i, 2]; color=:gray90)
+        Label(
+            fig[i, 2],
+            "$(round(Int, get_reynolds_number(sims[i])))";
+            rotation=pi / 2,
+            tellheight=false,
+        )
+    end
+
+    for i ∈ 1:length(fig.layout.rowsizes)
+        rowsize!(fig.layout, i, Aspect(1, 0.25))
+    end
+
+    resize_to_layout!(fig)
+
+    steps = 30_000
+    show_every = 50
+    prog = Progress(steps ÷ show_every)
+
+    path = joinpath(animations_dir, "two_sizes.mp4")
+    record(
+        fig,
+        path,
+        1:(steps÷show_every);
+    ) do t
+        next!(prog)
+        for _ ∈ 1:show_every
+            for sim ∈ sim_observables
+                update!(sim[])
+            end
+        end
+        for sim ∈ sim_observables
+            notify(sim)
+        end
+    end
+    return
+end
+
 function animate_wing_angles()
     fig = Figure()
     CairoMakie.activate!()
@@ -800,6 +872,51 @@ function animate_wing_angles()
         end
     end
     return
+end
+
+function animate_wing_3d()
+    sim = wing_scene_3d(angle=30)
+
+    config = () -> Config(:speed)
+    animation_path = joinpath(animations_dir, "wing_speed_3d.mp4")
+    animate!(
+        sim,
+        config();
+        steps=30_000,
+        show_every=50,
+        filename=animation_path,
+    )
+
+
+
+    figure_path = joinpath(media_dir, "wing_speed_3d.png")
+    fig = plot(sim, config())
+    typeof(fig)
+    Makie.save(figure_path, fig)
+    return sim
+end
+
+function animate_wing_iso_3d()
+    sim = wing_scene_3d(angle=30)
+
+    config = () -> Config(:speed, algorithm=:iso, isovalue=1, isorange=0.875)
+    animation_path = joinpath(animations_dir, "wing_speed_iso_3d.mp4")
+    run!(sim, steps=500)
+    animate!(
+        sim,
+        config();
+        steps=20_000,
+        show_every=50,
+        filename=animation_path,
+    )
+
+
+
+    figure_path = joinpath(media_dir, "wing_speed_iso_3d.png")
+    fig = plot(sim, config())
+    typeof(fig)
+    Makie.save(figure_path, fig)
+    return sim
 end
 
 # <<< animations
