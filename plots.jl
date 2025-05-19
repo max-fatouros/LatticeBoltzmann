@@ -271,10 +271,10 @@ function plot_objects(
         )
         mask .= 0
         mask[sim.object_mask.==1] .= 1
-        mask[:, :, 1] .= false
-        mask[:, :, end] .= false
-        mask[:, 1, :] .= false
-        mask[:, end, :] .= false
+        mask[:, :, 1] .= 0
+        mask[:, :, end] .= 0
+        mask[:, 1, :] .= 0
+        mask[:, end, :] .= 0
 
         return mask
     end
