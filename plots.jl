@@ -325,6 +325,7 @@ function animate!(
     for index ∈ CartesianIndices(configs)
         config = configs[index]
         config.ax = get_axis(simulation, fig[Tuple(index)...])
+        config.ax.ylabel = "y [lx]"
         plot_function = nothing
         if :velocity == configs[index].property
             plot_function = plot_velocities
@@ -348,6 +349,8 @@ function animate!(
             tellheight=false,
         )
     end
+
+    configs[end].ax.xlabel = "x [lx]"
 
     for i ∈ 1:length(fig.layout.rowsizes)
         rowsize!(fig.layout, i, Aspect(1, get_aspect(simulation)))
