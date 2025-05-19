@@ -619,20 +619,25 @@ function animate_disk()
     )
 end
 
-
 function animate_all_plots!(sim)
-
     animate!(
         sim,
         [
-            Config(:speed); Config(:curl); Config(:velocity);;
+            Config(:speed);
+            Config(:curl);
+            Config(
+            :velocity;
+            density=0.75,
+            arrow_size=10,
+            maxsteps=100,
+            stepsize=1
+        );;
         ];
-        steps=1000,
+        steps=10_000,
         show_every=50,
-        density=0.75,
-        arrow_size=10,
-        maxsteps=5000,
+        filename="vortex_all.mp4",
     )
+    return
 end
 
 function animate_reynolds_numbers()
