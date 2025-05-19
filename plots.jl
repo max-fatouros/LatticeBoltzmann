@@ -176,10 +176,15 @@ function plot_velocities(
     config=nothing;
     kwargs...,
 )
-
     if isnothing(config)
         config = Config()
     end
+
+    defaults = (;
+        colormap=:viridis,
+        nan_color=:black,
+    )
+    config.kwargs = merge(defaults, config.kwargs)
 
     fig = nothing
     if isnothing(config.ax)
@@ -195,12 +200,13 @@ function plot_velocities(
         (x, y) -> Point2f(sim.momentum_densities[round(Int, x), round(Int, y), :])
     end
 
+    empty!(config.ax)
     CairoMakie.streamplot!(
         config.ax,
         field,
         1:400,
         1:100;
-        kwargs...,
+        config.kwargs...,
     )
     plot_objects(sim; ax=config.ax)
 
@@ -243,9 +249,6 @@ function plot_objects(
     )
     return fig
 end
-
-
-
 
 function plot_objects(
     simulation::Observable{<:SimulationD3};
@@ -320,7 +323,8 @@ function animate!(
     sim = Observable(simulation)
 
     for index ∈ CartesianIndices(configs)
-        configs[index].ax = get_axis(simulation, fig[Tuple(index)...])
+        config = configs[index]
+        config.ax = get_axis(simulation, fig[Tuple(index)...])
         plot_function = nothing
         if :velocity == configs[index].property
             plot_function = plot_velocities
@@ -331,8 +335,7 @@ function animate!(
         @lift(
             plot_function(
                 $sim,
-                configs[index];
-                kwargs...,
+                config;
             )
         )
 
@@ -346,8 +349,7 @@ function animate!(
         )
     end
 
-
-    for i in 1:length(fig.layout.rowsizes)
+    for i ∈ 1:length(fig.layout.rowsizes)
         rowsize!(fig.layout, i, Aspect(1, get_aspect(simulation)))
     end
 
@@ -453,7 +455,7 @@ function animate_live!(
         )
     end
 
-    for i in 1:length(fig.layout.rowsizes)
+    for i ∈ 1:length(fig.layout.rowsizes)
         rowsize!(fig.layout, i, Aspect(1, get_aspect(simulation)))
     end
 
