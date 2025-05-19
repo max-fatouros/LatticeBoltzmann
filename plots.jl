@@ -325,6 +325,9 @@ function animate!(
     for index ∈ CartesianIndices(configs)
         config = configs[index]
         config.ax = get_axis(simulation, fig[Tuple(index)...])
+        if index[1] < size(configs, 1)
+            config.ax.xticklabelsvisible = false
+        end
         config.ax.ylabel = "y [lx]"
         plot_function = nothing
         if :velocity == configs[index].property
