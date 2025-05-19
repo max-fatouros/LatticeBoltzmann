@@ -340,14 +340,21 @@ function plot_all(sim::SimulationD2, filename)
         ))
     ]
 
+    configs[3].kwargs = (
+        density=0.75,
+        arrow_size=10,
+        maxsteps=100,
+        stepsize=1,
+    )
+
     plot(sim, Config(:speed; ax=axes[1]))
     plot(sim, Config(:curl; ax=axes[2]))
     plot_velocities(
-        sim;
-        ax=axes[3],
-        density=0.75,
-        arrow_size=10,
-        maxsteps=5000,
+        sim,
+        configs[3];
+        # density=0.75,
+        # arrow_size=10,
+        # maxsteps=5000,
     )
 
     for i ∈ 1:length(fig.layout.rowsizes)
@@ -368,8 +375,8 @@ function plot_all(sim::SimulationD2, filename)
 
     resize_to_layout!(fig)
 
-    path = joinpath(media_dir, filename)
-    Makie.save(path, fig)
+    # path = joinpath(media_dir, filename)
+    # Makie.save(path, fig)
 
     return fig
 end
