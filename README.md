@@ -1,5 +1,10 @@
 # Lattice Boltzmann Method
 
+Report at [main.pdf](main.pdf)
+
+![animation](animations/wing_angles.mp4)
+
+
 ## Pulling this repo
 I'm using `git-lfs` to store the binary files on GitLab.
 
